@@ -10,7 +10,11 @@ const userSchema = new Schema({
         minlength: 3
     },
     passwordHash: String,
-    passwordSalt: String
+    passwordSalt: String,
+    unlocks: {
+        type: Array,
+        default: []
+    }
 });
 
 const User = mongoose.model('User', userSchema, 'users');

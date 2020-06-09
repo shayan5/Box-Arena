@@ -47,4 +47,29 @@ router.route('/login').post((req, res) => {
     });
 });
 
+router.route('/unlocks').get(authenticateToken, (req, res) => {
+    User.findOne({username: req.body.user}, (err, docs) => {
+        if (err){
+            res.sendStatus(403);
+        }
+    });
+    console.log('middleware worked');
+    res.sendStatus(200);
+});
+
+function authenticateToken(req, res, next){
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if (token == null){
+        return res.sendStatus(401);
+    }
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+        if (err){
+            res.sendStatus(403);
+        } 
+        req.user = user;
+        next();
+    });
+}
+
 module.exports = router;
