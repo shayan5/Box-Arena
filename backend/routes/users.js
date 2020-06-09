@@ -37,10 +37,14 @@ router.route('/login').post((req, res) => {
             const user = new User(docs[0]);
             bcrypt.compare(password, user.passwordHash, (err, same) => {
                 if (same){
-                    const accessToken = jwt.sign(username, process.env.ACCESS_TOKEN_SECRET);
-                    res.json({ accessToken : accessToken });
+                    const accessToken = jwt.sign(
+                        {username: username}, 
+                        process.env.ACCESS_TOKEN_SECRET, 
+                        { expiresIn: '60s' }
+                    );
+                    return res.json({ accessToken : accessToken });
                 } else {
-                    res.status(401).json('Incorrect username or password');
+                    return res.status(401).json('Incorrect username or password');
                 }
             });
         }
@@ -48,13 +52,13 @@ router.route('/login').post((req, res) => {
 });
 
 router.route('/unlocks').get(authenticateToken, (req, res) => {
-    User.findOne({username: req.body.user}, (err, docs) => {
+    User.findOne({username: req.username}, (err, docs) => {
         if (err){
-            res.sendStatus(403);
+            return res.status(404).json(err);
         }
+        const user = new User(docs);
+        return res.json(user.unlocks);
     });
-    console.log('middleware worked');
-    res.sendStatus(200);
 });
 
 function authenticateToken(req, res, next){
@@ -65,9 +69,9 @@ function authenticateToken(req, res, next){
     }
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
         if (err){
-            res.sendStatus(403);
-        } 
-        req.user = user;
+           return res.sendStatus(403);
+        }
+        req.username = user.username;
         next();
     });
 }
