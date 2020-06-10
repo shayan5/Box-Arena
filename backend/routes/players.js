@@ -1,11 +1,7 @@
 const router = require('express').Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-let User = require('../models/user.model');
-
-router.route('/').get((req, res) => {
-    res.send('helllo worlds');
-});
+let Player = require('../models/player.model');
 
 router.route('/register').post((req, res) => {
     const username = req.body.username;
@@ -15,10 +11,9 @@ router.route('/register').post((req, res) => {
     }
     bcrypt.genSalt((err, salt) => {
         bcrypt.hash(password, salt, (err, hash) => {
-            const newUser = new User({
+            const newUser = new Player({
                 username: username,
-                passwordHash: hash,
-                passwordSalt: salt
+                saltedPasswordHash: hash,
             });
             newUser.save()
                 .then(() => res.json('Registered Successfully'))
@@ -30,12 +25,12 @@ router.route('/register').post((req, res) => {
 router.route('/login').post((req, res) => {
     const username = req.body.username;
     const password = req.body.password;
-    User.find({
+    Player.find({
         username: username
-    }, (err, docs) => {
+    }, 'username saltedPasswordHash', (err, docs) => {
         if (docs){
-            const user = new User(docs[0]);
-            bcrypt.compare(password, user.passwordHash, (err, same) => {
+            const player = new Player(docs[0]);
+            bcrypt.compare(password, player.saltedPasswordHash, (err, same) => {
                 if (same){
                     const accessToken = jwt.sign(
                         {username: username}, 
@@ -52,12 +47,45 @@ router.route('/login').post((req, res) => {
 });
 
 router.route('/unlocks').get(authenticateToken, (req, res) => {
-    User.findOne({username: req.username}, (err, docs) => {
+    Player.findOne({username: req.username}, 'unlocks', (err, docs) => {
         if (err){
             return res.status(404).json(err);
         }
-        const user = new User(docs);
-        return res.json(user.unlocks);
+        const player = new Player(docs);
+        return res.json(player.unlocks);
+    });
+});
+
+router.route('/currency').get(authenticateToken, (req, res) => {
+    Player.findOne({username: req.username}, 'currency', (err, docs) => {
+        if (err) {
+            return res.status(404).json(err);
+        }
+        const player = new Player(docs);
+        return res.json(player.currency);
+    });
+});
+
+router.route('/points').get(authenticateToken, (req, res) => {
+    Player.findOne({username: req.username}, 'points', (err, docs) => {
+        if (err) {
+            return res.status(404).json(err);
+        }
+        const player = new Player(docs);
+        return res.json(player.points);
+    });
+});
+
+router.route('/highscores').get((req, res) => {
+    Player.aggregate([
+        { $sort: { points: -1 } },
+        { $limit: 5},
+        { $project: { username: 1, points: 1, _id: 0} }
+    ], (err, docs) => {
+        if (err) {
+            return res.status(404).json(err);
+        }
+        return res.json(docs);
     });
 });
 
