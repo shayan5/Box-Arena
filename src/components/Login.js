@@ -1,51 +1,90 @@
-import React, { useState } from "react";
+import React, { Component } from "react";
 import { Form, Button, FormGroup, FormControl, FormLabel } from "react-bootstrap";
+import axios from 'axios';
 import "./Login.css";
 
-function Login() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+class Login extends Component {
+  constructor(props) {
+    super(props)
 
-  function validateForm() {
-    return username.length > 0 && password.length > 0;
+    this.onChangeUsername = this.onChangeUsername.bind(this);
+    this.onChangePassword = this.onChangePassword.bind(this);
+    this.onSubmit = this.onSubmit.bind(this);
+
+    this.state = {
+      username:'',
+      password:'',
+      message:''
+    }
   }
 
-  function handleSubmit(event) {
+  onChangeUsername(e) {
+    this.setState({
+      username: e.target.value
+    });
+  }
+
+  onChangePassword(e) {
+    this.setState({
+      password: e.target.value
+    });
+  }
+
+  validateForm() {
+    if (this.state.username == null || this.state.password == null) {
+      return false;
+    }
+    return this.state.username.length > 0 && this.state.password.length > 0;
+  }
+
+  onSubmit(event) {
     event.preventDefault();
-    alert(username + password);
+    axios.post('http://localhost:4000/players/login', { //TODO change to relative path for prod
+      username: this.state.username,
+      password: this.state.password
+    }).then((res) => {
+      alert(res);
+    }).catch((err) => {
+      if (err.response.status === 401)
+      this.setState({
+        message: "Incorrect username or password"
+      });
+    });
   }
 
-  return (
-    <div className="Login">
-      <Form onSubmit={handleSubmit}>
-        <FormGroup controlId="formBasicLogin">
-          <FormLabel>Username</FormLabel>
-          <FormControl 
-            type="username"
-            value={username} 
-            placeholder="Enter username"
-            autoFocus
-            onChange={ e => setUsername(e.target.value) }
-            autoComplete="off"
-          />
-        </FormGroup>
+  render(){
+    return (
+      <div className="Login">
+        <Form onSubmit={this.onSubmit}>
+          <FormGroup controlId="formBasicLogin">
+            <FormLabel>Username</FormLabel>
+            <FormControl 
+              type="username"
+              value={this.state.username} 
+              placeholder="Enter username"
+              autoFocus
+              onChange={this.onChangeUsername}
+              autoComplete="off"
+            />
+          </FormGroup>
 
-        <FormGroup controlId="formBasicPassword">
-          <FormLabel>Password</FormLabel>
-          <FormControl 
-            type="password" 
-            value={password}
-            placeholder="Password"
-            onChange={ e => setPassword(e.target.value) }
-          />
-        </FormGroup>
-
-        <Button variant="primary" type="submit" disabled={!validateForm()}>
-          Submit
-        </Button>
-      </Form>
-    </div>
-  );
+          <FormGroup controlId="formBasicPassword">
+            <FormLabel>Password</FormLabel>
+            <FormControl 
+              type="password" 
+              value={this.state.password}
+              placeholder="Password"
+              onChange={this.onChangePassword}
+            />
+          </FormGroup>
+          <p>{this.state.message}</p>
+          <Button variant="primary" type="submit" disabled={!this.validateForm()}>
+            Submit
+          </Button>
+        </Form>
+      </div>
+    );
+  }
 }
 
 export default Login;
