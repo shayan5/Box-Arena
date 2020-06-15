@@ -45,10 +45,15 @@ class Login extends Component {
     }).then((res) => {
       alert(res);
     }).catch((err) => {
-      if (err.response.status === 401)
-      this.setState({
-        message: "Incorrect username or password"
-      });
+      if (err.response && err.response.status === 401) {
+        this.setState({
+          message: "Incorrect username or password."
+        });
+      } else {
+        this.setState({
+          message: "Something went wrong. Please try again later."
+        });
+      } 
     });
   }
 
@@ -67,7 +72,6 @@ class Login extends Component {
               autoComplete="off"
             />
           </FormGroup>
-
           <FormGroup controlId="formBasicPassword">
             <FormLabel>Password</FormLabel>
             <FormControl 

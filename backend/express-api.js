@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const mongoose = require('mongoose');
+const cookieParser = require('cookie-parser');
 
 require('dotenv').config();
 
@@ -10,6 +11,7 @@ const port = process.env.PORT || 4000;
 
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 
 // serve static react pages
 app.use(express.static(path.join(__dirname, '../build')));

@@ -10,6 +10,7 @@ const playerSchema = new Schema({
         minlength: 3
     },
     saltedPasswordHash: String,
+    refreshToken: String,
     points: {
         type: Number,
         default: 0
