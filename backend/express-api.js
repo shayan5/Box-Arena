@@ -24,7 +24,11 @@ connection.once('open', () => {
     console.log("MongoDB connection has been established");
 });
 
-// api for player operations 
+// api for authentication related operations
+const authenticationRouter = require('./routes/authentication');
+app.use('/authentication', authenticationRouter);
+
+// api for player related operations 
 const playersRouter = require('./routes/players');
 app.use('/players', playersRouter);
 

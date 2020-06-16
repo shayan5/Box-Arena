@@ -39,7 +39,7 @@ class Login extends Component {
 
   onSubmit(event) {
     event.preventDefault();
-    axios.post('http://localhost:4000/players/login', { //TODO change to relative path for prod
+    axios.post('http://localhost:4000/authentication/login', { //TODO change to relative path for prod
       username: this.state.username,
       password: this.state.password
     }).then((res) => {
