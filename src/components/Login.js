@@ -5,7 +5,7 @@ import "./Login.css";
 
 class Login extends Component {
   constructor(props) {
-    super(props)
+    super(props);
 
     this.onChangeUsername = this.onChangeUsername.bind(this);
     this.onChangePassword = this.onChangePassword.bind(this);
@@ -39,21 +39,18 @@ class Login extends Component {
 
   onSubmit(event) {
     event.preventDefault();
+    this.setState({ message: "" });
     axios.post('http://localhost:4000/authentication/login', { //TODO change to relative path for prod
       username: this.state.username,
       password: this.state.password
     }).then((res) => {
-      alert(res);
+      if (res.data.accessToken){
+        this.setState({ message: 'Login successful' });
+      }
     }).catch((err) => {
-      if (err.response && err.response.status === 401) {
-        this.setState({
-          message: "Incorrect username or password."
-        });
-      } else {
-        this.setState({
-          message: "Something went wrong. Please try again later."
-        });
-      } 
+      if (err.response.data.message) {
+        this.setState({ message: err.response.data.message });
+      }
     });
   }
 
@@ -78,6 +75,7 @@ class Login extends Component {
               type="password" 
               value={this.state.password}
               placeholder="Password"
+              autoComplete="on"
               onChange={this.onChangePassword}
             />
           </FormGroup>

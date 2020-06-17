@@ -9,8 +9,12 @@ const refreshTokenExpiry = 75; // in seconds
 router.route('/register').post((req, res) => {
     const username = req.body.username;
     const password = req.body.password;
-    if (!username || !password){
-        return res.sendStatus(400);
+    const confirmPassword = req.body.confirmPassword;
+    if (!username || !password || username.length < 3 || !confirmPassword) {
+        return res.status(400).json({ message: 'Something went wrong. Please try again later' });
+    }
+    if (confirmPassword !== password ) {
+        return res.json({ message: 'Passwords do not match' });
     }
     bcrypt.genSalt((err, salt) => {
         bcrypt.hash(password, salt, (err, hash) => {
@@ -20,9 +24,12 @@ router.route('/register').post((req, res) => {
             });
             newUser.save()
             .then(() => {
-                return res.json('Registered Successfully') 
+                return res.json({ message: 'Registered successfully!' }) 
             }).catch( (err) => { 
-                return res.status(400).json(err)
+                if (err && err.code === 11000) {
+                    return res.json({ message: 'Username is taken' });
+                } 
+                return res.sendStatus(500);
             });
         });
     });
@@ -40,11 +47,11 @@ router.route('/login').post((req, res) => {
         if (err) {
             return res.sendStatus(500);
         }
-        if (docs){
+        if (docs && docs.length > 0){
             const player = new Player(docs[0]);
             bcrypt.compare(password, player.saltedPasswordHash, (bcryptErr, same) => {
                 if (bcryptErr) {
-                    return res.sendStatus(500);
+                    return res.status(500).json({ message: 'Something went wrong. Please try again later' });
                 }
                 if (same){
                     const accessToken = jwt.sign(
@@ -72,12 +79,14 @@ router.route('/login').post((req, res) => {
                             refreshToken: refreshToken 
                         });
                     }).catch(() => {
-                        return res.sendStatus(500);
+                        return res.status(500).json({ message: 'Something went wrong. Please try again later' });
                     });
                 } else {
-                    return res.status(401).json('Incorrect username or password');
+                    return res.status(401).json({ message: 'Incorrect username or password' });
                 }
             });
+        } else {
+            return res.status(401).json({ message: 'Incorrect username or password' });
         }
     });
 });
