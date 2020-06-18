@@ -39,7 +39,7 @@ router.route('/highscores').get((req, res) => {
         { $project: { username: 1, points: 1, _id: 0} }
     ], (err, docs) => {
         if (err) {
-            return res.status(404).json(err);
+            return res.status(404).json({ message: 'Something went wrong. Please try again later' });
         }
         return res.json(docs);
     });
