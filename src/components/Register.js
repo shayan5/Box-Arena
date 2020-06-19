@@ -129,6 +129,8 @@ class Register extends Component {
                     disabled={!this.validateForm()}>
                         Submit
                     </Button>
+                    <br/>
+                    Already have an account? <a href="/login">Sign in</a>
                 </Form>
             </div>
         );

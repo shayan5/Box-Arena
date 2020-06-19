@@ -74,6 +74,7 @@ router.route('/login').post((req, res) => {
                             maxAge: new Date(new Date().getTime() + refreshTokenExpiry)}
                         );
                         return res.json({ 
+                            username: username,
                             accessToken: accessToken,
                             accessTokenExpiry: new Date(new Date().getTime() + accessTokenExpiry),
                             refreshToken: refreshToken 
@@ -103,6 +104,7 @@ router.route('/logout').post(authenticateToken, (req, res) => {
 
 router.route('/refresh-token').post((req, res) => {
     const refreshToken = req.cookies['refreshToken'];
+    console.log(refreshToken + " is refreshed");
     if (!refreshToken) {
         return res.sendStatus(403);
     }
@@ -136,6 +138,7 @@ router.route('/refresh-token').post((req, res) => {
                         maxAge: new Date(new Date().getTime() + refreshTokenExpiry)
                     });
                     return res.json({
+                        username: user.username,
                         accessToken: newAccessToken,
                         accessTokenExpiry: new Date(new Date().getTime() + accessTokenExpiry),
                         refreshToken: newRefreshToken

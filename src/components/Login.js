@@ -40,14 +40,17 @@ class Login extends Component {
   onSubmit(event) {
     event.preventDefault();
     this.setState({ message: "" });
-    axios.post('http://localhost:4000/authentication/login', { //TODO change to relative path for prod
+    axios.post('http://www.test.com:4000/authentication/login', { //TODO change to relative path for prod
       username: this.state.username,
       password: this.state.password
     }).then((res) => {
-      if (res.data.accessToken){
-        this.setState({ message: 'Login successful' });
+      if (res.data){
+        this.props.handleLogin(this.state.username, 
+          res.data.accessToken, res.data.accessTokenExpiry);
+        //window.location.href = '/leaderboards'; //TODO change to welcome page
       }
     }).catch((err) => {
+      console.log(err);
       if (err.response.data.message) {
         this.setState({ message: err.response.data.message });
       }
@@ -83,6 +86,8 @@ class Login extends Component {
           <Button variant="primary" type="submit" disabled={!this.validateForm()}>
             Submit
           </Button>
+          <br/>
+          Need an account? <a href='/register'>Sign up</a>
         </Form>
       </div>
     );

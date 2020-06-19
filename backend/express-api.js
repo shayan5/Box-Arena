@@ -9,9 +9,16 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 4000;
 
-app.use(cors());
+//app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
+
+
+app.use(cors({
+    origin: ["http://www.test.com:3000", "http://www.test.com:4000"],
+    credentials: true
+}));
+
 
 // serve static react pages
 app.use(express.static(path.join(__dirname, '../build')));
