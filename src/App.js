@@ -13,6 +13,7 @@ class App extends Component { //TODO move to components folder
   constructor(props) {
     super(props);
 
+    this.getTimeToRenewToken = this.getTimeToRenewToken.bind(this);
     this.silentRefresh = this.silentRefresh.bind(this);
     this.handleLogin = this.handleLogin.bind(this);
     this.handleLogout = this.handleLogout.bind(this);
@@ -32,6 +33,18 @@ class App extends Component { //TODO move to components folder
       accessToken: accessToken,
       accessTokenExpiry: accessTokenExpiry
     });
+    const renewTokenTime = this.getTimeToRenewToken(accessTokenExpiry); 
+    setTimeout(() => {this.silentRefresh();}, renewTokenTime);
+  }
+
+  /***
+   * This function calculates the amount of time left (in milliseconds) until
+   * the access token expires. It then subtracts 5 minutes from the total time 
+   * left so that there is a 5 minute buffer during which we can renew the
+   * the access token without a disruption in.
+  ***/
+  getTimeToRenewToken(expiry) {
+    return (new Date(expiry) - new Date().getTime() - (5 * 60)) * 1000; // includes 5min buffer
   }
 
   handleLogout() {
@@ -54,34 +67,10 @@ class App extends Component { //TODO move to components folder
   }
 
   componentDidMount(){
-    console.log('mounting');
-    setInterval(() => {
-      axios.defaults.withCredentials = true;
-      axios.post('http://www.test.com:4000/authentication/refresh-token', {}, { withCredentials: true }) //TODO change to relative path
-      .then((res) => {
-        if (res.status === 200) {
-          this.setState({ 
-            authenticated: true,
-            accessToken: res.data.accessToken,
-            username: res.data.username,
-            accessTokenExpiry: res.data.accessTokenExpiry
-          });
-        } else {
-          this.setState({ authenticated: false });
-        }
-      }).catch((err) => {
-        console.log(err);
-        this.setState({ authenticated: false });
-        window.location.href = '/login';
-      });
-    }, 60*1000);
-    
-    
-    //this.silentRefresh();
+    this.silentRefresh();
   }
 
-  silentRefresh = () => {
-    //console.log('refresh is called');
+  silentRefresh() {
     axios.defaults.withCredentials = true;
     axios.post('http://www.test.com:4000/authentication/refresh-token', {}, { withCredentials: true }) //TODO change to relative path
     .then((res) => {
@@ -92,13 +81,23 @@ class App extends Component { //TODO move to components folder
           username: res.data.username,
           accessTokenExpiry: res.data.accessTokenExpiry
         });
+        const renewTokenTime = this.getTimeToRenewToken(res.data.accessTokenExpiry);
+        setTimeout(() => {this.silentRefresh();}, renewTokenTime);
       } else {
-        this.setState({ authenticated: false });
+        this.setState({        
+          authenticated: false,
+          username: "",
+          accessToken: "",
+          accessTokenExpiry: "" 
+        });
       }
     }).catch((err) => {
-      console.log(err);
-      this.setState({ authenticated: false });
-      //window.location.href = '/login';
+      this.setState({        
+        authenticated: false,
+        username: "",
+        accessToken: "",
+        accessTokenExpiry: "" 
+      });
     });
   }
 

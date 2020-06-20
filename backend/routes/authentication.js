@@ -3,8 +3,8 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 let Player = require('../models/player.model');
 
-const accessTokenExpiry = 30; // in seconds
-const refreshTokenExpiry = 75; // in seconds
+const accessTokenExpiry = 30 * 60; // in seconds
+const refreshTokenExpiry = 60 * 60; // in seconds
 
 router.route('/register').post((req, res) => {
     const username = req.body.username;
@@ -104,7 +104,6 @@ router.route('/logout').post(authenticateToken, (req, res) => {
 
 router.route('/refresh-token').post((req, res) => {
     const refreshToken = req.cookies['refreshToken'];
-    console.log(refreshToken + " is refreshed");
     if (!refreshToken) {
         return res.sendStatus(403);
     }
