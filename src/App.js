@@ -8,6 +8,7 @@ import Login from "./components/Login"
 import Register from "./components/Register"
 import NavigationBar from "./components/NavigationBar";
 import Leaderboards from "./components/Leaderboards";
+import Game from "./components/Game";
 
 class App extends Component { //TODO move to components folder
   constructor(props) {
@@ -108,6 +109,7 @@ class App extends Component { //TODO move to components folder
           <NavigationBar />
           <Route path="/leaderboards" component={Leaderboards}/>
           <Route path="/logout" render={() => {this.handleLogout();}}/>
+          <Route path="/game" component={Game}/>
         </Router>
       );
     } else {
