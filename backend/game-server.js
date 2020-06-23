@@ -10,7 +10,7 @@ let world={};
 let monsterArray=[];
 const interval = 1000;
 let changes={};
-const tiles = 21;
+const tiles = 16; //world is 15x15
 let clients = [];
 let numMonsters = 0;
 	
@@ -62,7 +62,7 @@ function generateWorld(){
 	for (let i = 1; i < tiles; i++){
 		for (let j = 1; j < tiles; j++){
 			const num = Math.random();
-			if (j == 1 || j == 20 || i == 1 || i == 20){
+			if (j == 1 || j == tiles - 1 || i == 1 || i == tiles - 1){
 				world[i+"-"+j]="wall";
 			} else if (num < 0.35){
 				world[i+"-"+j]="box";
