@@ -58,6 +58,21 @@ class Game extends Component {
         client.onmessage = (message) => {
             if (message.data) {
                 const msg = JSON.parse(message.data);
+                if (msg.world){
+                    this.setState({ board: msg.world });
+                } else if (msg.changes) {
+                    const newBoard = this.state.board;
+                    for (let i = 0; i < msg.changes.length; i++) {
+                        newBoard[msg.changes[i].y][msg.changes[i].x] = msg.changes[i].type;
+                    }
+                    this.setState({ board: newBoard });
+                }   
+            }
+        
+            /*
+            if (message.data) {
+                const msg = JSON.parse(message.data);
+                console.log(msg);
                 let newBoard = this.state.board;
                 Object.keys(msg).forEach((key) => {
                     const coordinates = key.split('-');
@@ -67,6 +82,7 @@ class Game extends Component {
                 });
                 this.setState({ board: newBoard });
             }
+            */
         }
     }
 
