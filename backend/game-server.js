@@ -1,4 +1,5 @@
 const WebSocket = require('ws');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const port = process.env.GAME_PORT || 4001
@@ -43,7 +44,7 @@ function isTrapped(monster){
 	lst.push(getMoveCoord(monster.x,monster.y,"NW"));
 	lst.push(getMoveCoord(monster.x,monster.y,"SE"));
 	lst.push(getMoveCoord(monster.x,monster.y,"SW"));
-	for (let i =0;i<lst.length;i++){
+	for (let i=0;i<lst.length;i++){
 		const actor = world[lst[i][0]+"-"+lst[i][1]];
 		if (actor != "wall" && actor != "box"){
 			trapped=false;
@@ -275,14 +276,15 @@ function canMoveBox(box, direction){
 	}
 }
 
-function parseRequest(request){
+function parseRequest(message){
 	//request, name, location
-	if (request[0]=="new"){
-		placePlayer(request[1]);
-	} else if (request[0]=="logout"){
-		removePlayer(request[1]);
-	} else if (request[0]=="N" || request[0]=="S" || request[0]=="E" || request[0]=="W"){
-		movePlayer(request[0], request[1], request[2]);
+	console.log(message.request);
+	if (message.request === "new"){
+		//placePlayer(message[1]);
+	} else if (message.request === "logout"){
+		removePlayer(message[1]);
+	} else if (message[0]=="N" || message[0]=="S" || message[0]=="E" || message[0]=="W"){
+		movePlayer(message[0], message[1], message[2]);
 	}
 }
 

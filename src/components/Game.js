@@ -42,6 +42,10 @@ class Game extends Component {
         client.onopen = () => {
             console.log("Connected");
             this.setState({ connect: true });
+            client.send(JSON.stringify({
+                request: "new",
+                user: this.props.accessToken
+            }));
         }
 
         client.onclose = (event) => {

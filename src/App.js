@@ -45,6 +45,7 @@ class App extends Component { //TODO move to components folder
    * the access token without a disruption in.
   ***/
   getTimeToRenewToken(expiry) {
+    //return 5000;
     return (new Date(expiry) - new Date().getTime() - (5 * 60)) * 1000; // includes 5min buffer
   }
 
@@ -109,7 +110,7 @@ class App extends Component { //TODO move to components folder
           <NavigationBar />
           <Route path="/leaderboards" component={Leaderboards}/>
           <Route path="/logout" render={() => {this.handleLogout();}}/>
-          <Route path="/game" component={Game}/>
+          <Route path="/game" render={() => (<Game accessToken={this.state.accessToken}/>)}/>
         </Router>
       );
     } else {
