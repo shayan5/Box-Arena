@@ -22,6 +22,16 @@ router.route('/currency').get(auth.authenticateToken, (req, res) => {
     });
 });
 
+router.route('/armour').get(auth.authenticateToken, (req, res) => {
+    Player.findOne({username: req.username}, 'armour', (err, docs) => {
+        if (err) {
+            return res.status(404).json(err);
+        }
+        const player = new Player(docs);
+        return res.json(player.armour);
+    });
+});
+
 router.route('/points').get(auth.authenticateToken, (req, res) => {
     Player.findOne({username: req.username}, 'points', (err, docs) => {
         if (err) {

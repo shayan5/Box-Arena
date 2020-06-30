@@ -5,13 +5,17 @@ const wall = require('../icons/wall.png');
 const blank = require('../icons/blank.gif');
 const monster = require('../icons/monster.png');
 const box = require('../icons/box.png');
+const defaultChar = require('../icons/default.png');
+const pirate = require('../icons/pirate.png');
 
 let client;
 const images = {
     "blank": blank,
     "wall": wall,
     "monster": monster,
-    "box": box
+    "box": box,
+    "default": defaultChar,
+    "pirate": pirate
 }
 
 class Game extends Component {
@@ -66,27 +70,18 @@ class Game extends Component {
                         newBoard[msg.changes[i].y][msg.changes[i].x] = msg.changes[i].type;
                     }
                     this.setState({ board: newBoard });
-                }   
+                } else if (msg.error) {
+                    alert(msg.error);
+                }  
             }
-        
-            /*
-            if (message.data) {
-                const msg = JSON.parse(message.data);
-                console.log(msg);
-                let newBoard = this.state.board;
-                Object.keys(msg).forEach((key) => {
-                    const coordinates = key.split('-');
-                    const x = parseInt(coordinates[1]) - 1;
-                    const y = parseInt(coordinates[0]) - 1;
-                    newBoard[y][x] = msg[key];
-                });
-                this.setState({ board: newBoard });
-            }
-            */
         }
     }
 
     disconnectFromGame() {
+        client.send(JSON.stringify({
+            request: "logout",
+            user: this.props.accessToken
+        }));
         client.close();
         console.log('Disconnected');
         this.setState({ connect: false });

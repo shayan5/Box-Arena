@@ -22,6 +22,10 @@ const playerSchema = new Schema({
     unlocks: {
         type: Array,
         default: []
+    },
+    armour: {
+        type: String,
+        default: "default"
     }
 });
 
