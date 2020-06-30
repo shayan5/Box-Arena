@@ -5,16 +5,15 @@ const wall = require('../icons/wall.png');
 const blank = require('../icons/blank.gif');
 const monster = require('../icons/monster.png');
 const box = require('../icons/box.png');
-const defaultChar = require('../icons/default.png');
+const defaultArmour = require('../icons/default.png');
 const pirate = require('../icons/pirate.png');
 
-let client;
 const images = {
     "blank": blank,
     "wall": wall,
     "monster": monster,
     "box": box,
-    "default": defaultChar,
+    "default": defaultArmour,
     "pirate": pirate
 }
 
@@ -22,6 +21,9 @@ class Game extends Component {
     constructor(props) {
         super(props);
 
+        this.client = null;
+
+        this.handleKeypress = this.handleKeypress.bind(this);
         this.renderTable = this.renderTable.bind(this);
         this.connectToGame = this.connectToGame.bind(this);
         this.disconnectFromGame = this.disconnectFromGame.bind(this);
@@ -33,33 +35,37 @@ class Game extends Component {
         }
     }
 
+    componentDidMount() {
+        document.addEventListener('keydown', this.handleKeypress);
+    }
 
     componentWillUnmount() {
-        if (this.state.connect){
+        if (this.client && this.client.readyState === this.client.OPEN) {
+            this.client.close();
             console.log("Disconnected")
-            client.close();
         }
+        document.removeEventListener('keydown', this.handleKeypress);
     }
 
     connectToGame() {
-        client = new WebSocket("ws://www.test.com:4001"); //TODO fix url
-        client.onopen = () => {
+        this.client = new WebSocket("ws://www.test.com:4001"); //TODO fix url
+        this.client.onopen = () => {
             console.log("Connected");
             this.setState({ connect: true });
-            client.send(JSON.stringify({
+            this.client.send(JSON.stringify({
                 request: "new",
                 user: this.props.accessToken
             }));
         }
 
-        client.onclose = (event) => {
+        this.client.onclose = (event) => {
+            this.setState({ connect: false });
             if (!event.wasClean) {
                 alert("Connection closed unexpectedly:" + event.code);
             }
-            this.setState({ connect: false });
         }
 
-        client.onmessage = (message) => {
+        this.client.onmessage = (message) => {
             if (message.data) {
                 const msg = JSON.parse(message.data);
                 if (msg.world){
@@ -77,14 +83,38 @@ class Game extends Component {
         }
     }
 
+    handleKeypress = function(event) {
+        if ([37, 38, 39, 40].indexOf(event.keyCode) > -1) {
+            event.preventDefault();
+        }
+        if (this.state.connect) {
+            switch(event.keyCode) {
+                case 37:
+                    alert("left");
+                    break;
+                case 38:
+                    alert("up");
+                    break;
+                case 39:
+                    alert("right");
+                    break;
+                case 40:
+                    alert("down");
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
     disconnectFromGame() {
-        client.send(JSON.stringify({
+        this.setState({ connect: false });
+        this.client.send(JSON.stringify({
             request: "logout",
             user: this.props.accessToken
         }));
-        client.close();
+        this.client.close();
         console.log('Disconnected');
-        this.setState({ connect: false });
     }
 
     renderTable() {

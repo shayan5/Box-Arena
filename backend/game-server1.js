@@ -113,6 +113,9 @@ function newPlayerRequest(ws, userToken) {
             ws.close(4403);
         } else {
             ws.send(JSON.stringify({ world: world }));
+            if (players[user.username]) { // user is already logged in so remove the current instance and respawn them
+                deletePlayer(user.username);
+            }
             if (currentPlayers < maxPlayers) {   
                 spawnPlayer(user.username, userToken);
             } else {
@@ -123,19 +126,34 @@ function newPlayerRequest(ws, userToken) {
     });
 }
 
+function deletePlayer(username) {
+    const player = players[username];
+    world[player.y][player.x] = "blank";
+    changes.push({ x: player.x, y: player.y, type: "blank" });
+    delete players[username];
+    currentPlayers--;
+    broadcastChanges();
+}
+
 function logoutRequest(ws, userToken) {
     jwt.verify(userToken, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
         if (err) {
             ws.send(JSON.stringify({ error: "User is unauthorized to make this request." }));
         } else {
-            const player = players[user.username];
-            world[player.y][player.x] = "blank";
-            changes.push({ x: player.x, y: player.y, type: "blank" });
-            delete players[user.username];
-            currentPlayers--;
-            broadcastChanges();
+            deletePlayer(user.username);
         }
     });
+}
+
+function parseRequest(ws, clientMessage) {
+    if (clientMessage.request) {
+        const req = clientMessage.request;
+        if (req === "new") {
+            newPlayerRequest(ws, clientMessage.user);
+        } else if (req === "logout") {
+            logoutRequest(ws, clientMessage.user);
+        }
+    }
 }
 
 /**************** Database/API ******/
@@ -143,7 +161,7 @@ function getPlayerInfo(token) {
     const config = { 
         headers: { Authorization: `Bearer ${token}` } 
     };
-    return axios.get('http://www.test.com:4000/players/armour', config)
+    return axios.get('http://www.test.com:4000/players/armour', config) //TODO relative path
     .then((res) => {
         return res.data;
     }).catch(() => {
@@ -173,13 +191,6 @@ wss.broadcast = function(message) {
 wss.on('connection', (ws) => {
 	ws.on('message', (clientMessage) => {
         clientMessage = JSON.parse(clientMessage);
-        if (clientMessage.request) {
-            const req = clientMessage.request;
-            if (req === "new") {
-                newPlayerRequest(ws, clientMessage.user);
-            } else if (req === "logout") {
-                logoutRequest(ws, clientMessage.user);
-            }
-        }
+        parseRequest(ws, clientMessage);
 	});
 });
