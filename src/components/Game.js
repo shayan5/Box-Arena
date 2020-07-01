@@ -23,6 +23,7 @@ class Game extends Component {
 
         this.client = null;
 
+        this.sendRequest = this.sendRequest.bind(this);
         this.handleKeypress = this.handleKeypress.bind(this);
         this.renderTable = this.renderTable.bind(this);
         this.connectToGame = this.connectToGame.bind(this);
@@ -47,21 +48,25 @@ class Game extends Component {
         document.removeEventListener('keydown', this.handleKeypress);
     }
 
+    sendRequest(request) {
+        this.client.send(JSON.stringify({
+            request: request,
+            user: this.props.accessToken
+        }));
+    }
+
     connectToGame() {
         this.client = new WebSocket("ws://www.test.com:4001"); //TODO fix url
         this.client.onopen = () => {
             console.log("Connected");
             this.setState({ connect: true });
-            this.client.send(JSON.stringify({
-                request: "new",
-                user: this.props.accessToken
-            }));
+            this.sendRequest("new");
         }
 
         this.client.onclose = (event) => {
             this.setState({ connect: false });
             if (!event.wasClean) {
-                alert("Connection closed unexpectedly:" + event.code);
+                alert("Connection closed unexpectedly: " + event.code);
             }
         }
 
@@ -73,7 +78,7 @@ class Game extends Component {
                 } else if (msg.changes) {
                     const newBoard = this.state.board;
                     for (let i = 0; i < msg.changes.length; i++) {
-                        newBoard[msg.changes[i].y][msg.changes[i].x] = msg.changes[i].type;
+                        newBoard[msg.changes[i].y][msg.changes[i].x] = msg.changes[i];
                     }
                     this.setState({ board: newBoard });
                 } else if (msg.error) {
@@ -90,16 +95,16 @@ class Game extends Component {
         if (this.state.connect) {
             switch(event.keyCode) {
                 case 37:
-                    alert("left");
+                    this.sendRequest("left");
                     break;
                 case 38:
-                    alert("up");
+                    this.sendRequest("up");
                     break;
                 case 39:
-                    alert("right");
+                    this.sendRequest("right");
                     break;
                 case 40:
-                    alert("down");
+                    this.sendRequest("down");
                     break;
                 default:
                     break;
@@ -109,10 +114,7 @@ class Game extends Component {
 
     disconnectFromGame() {
         this.setState({ connect: false });
-        this.client.send(JSON.stringify({
-            request: "logout",
-            user: this.props.accessToken
-        }));
+        this.sendRequest("logout");
         this.client.close();
         console.log('Disconnected');
     }
@@ -121,9 +123,18 @@ class Game extends Component {
         const board = this.state.board;
         return board.map((row, i) => {
             return (<tr key={i}>{row.map((item, j) => {
-                return (<td key={j}>
-                    <img src={images[item]} className="gameTile" alt=""></img>
-                </td>);
+                if (item == null){
+                    return <td key={j}></td>;
+                }
+                if (item.type === "player") {
+                    return (<td key={j}>
+                    <img src={images[item.armour]} className="gameTile" alt=""></img>
+                     </td>); 
+                } else {
+                    return (<td key={j}>
+                    <img src={images[item.type]} className="gameTile" alt=""></img>
+                    </td>);
+                } 
             })}</tr>);
         })
     }

@@ -1,312 +1,301 @@
+const express = require('express');
 const WebSocket = require('ws');
 const jwt = require('jsonwebtoken');
+const axios = require('axios');
+
 require('dotenv').config();
 
-const port = process.env.GAME_PORT || 4001
+const app = express();
+const port = process.env.GAME_PORT || 4001;
+
+/************* Tile Classes ******/
+class Tile {
+    constructor(type) {
+        this.type = type;
+    }
+}
+
+class PlayerTile extends Tile {
+    constructor(username, armour) {
+        super("player");
+        this.username = username;
+        this.armour = armour;
+    }
+}
+
+
+/************* Game **************/
+const dimensions = 15;
+const interval = 1000; // time in ms it takes for world to update
+const maxPlayers = 5;
+let world = Array(dimensions).fill().map(() => Array(dimensions).fill(null));
+//let numMonsters = 0;
+let monsters = [];
+let changes = [];
+let players = {};
+let currentPlayers = 0;
+
+
+generateWorld();
+setInterval(() => {
+    updateMonsters();
+    broadcastChanges();
+}, interval);
+
+function broadcastChanges() {
+    if (changes.length > 0) {
+        wss.broadcast(JSON.stringify({ changes: changes }));
+        changes = [];
+    }
+}
+
+function updateMonsters() {
+    for (let i = 0; i < monsters.length; i++) {
+        if (isTrapped(monsters[i])) {
+            killMonster(i);
+        } else {
+            const newCoordinates = moveMonster(monsters[i]);
+            //update monster changes
+            monsters[i].x = newCoordinates.x;
+            monsters[i].y = newCoordinates.y;
+        }
+    }
+}
+
+function isTrapped(monster) {
+    for (let i = -1; i < 2; i++) {
+        for (let j = -1; j < 2; j++) {
+            if (i === 0 && j === 0) {
+                continue;
+            }
+            if (world[monster.y + i][monster.x + j].type !== "box" && 
+            world[monster.y + i][monster.x + j].type !== "wall") {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+function killMonster(index) {
+    const monster = monsters[index];
+    world[monster.y][monster.x] = new Tile("blank");
+    monsters.splice(index, 1);
+    changes.push({ x: monster.x, y: monster.y, type: "blank" });
+    broadcastChanges();
+}
+
+function moveMonster(monster) {
+    const {x, y} = getRandomDirection();
+    if (world[monster.y + y][monster.x + x].type === "blank") {
+        world[monster.y][monster.x] = new Tile("blank");
+        changes.push({ x: monster.x, y: monster.y, type: "blank"});
+        world[monster.y + y][monster.x + x] = new Tile("monster");
+        changes.push({ x: monster.x + x, y: monster.y + y, type: "monster"});
+        return { x: monster.x + x, y: monster.y + y };
+    }
+    return { x: monster.x, y: monster.y };
+}
+
+function getRandomDirection() {
+    const directions = [-1, 0, 1];
+    const x = directions[Math.floor(Math.random() * 3)];
+    const y = directions[Math.floor(Math.random() * 3)];
+    return { x: x, y: y };
+}
+
+function generateWorld() {
+    for (let i = 0; i < dimensions; i++) {
+        for (let j = 0; j < dimensions; j++) {
+            const randomNumber = Math.random();
+            if (i === 0 || j === 0 || i === dimensions - 1 || j === dimensions - 1) {
+                world[i][j] = new Tile("wall"); //surround border with walls
+            } else if (randomNumber < 0.35) {
+                world[i][j] = new Tile("box");
+            } else if (randomNumber < 0.39) {
+                world[i][j] = new Tile("monster");
+                monsters.push({ x: j, y: i });
+                //numMonsters++;
+            } else {
+                world[i][j] = new Tile("blank");
+            }
+        }
+    }
+}
+
+function findEmptyTile() {
+    for (let i = 0; i < dimensions; i++) {
+        for (let j = 0; j < dimensions; j++) {
+            if (world[i][j].type === "blank"){
+                return [i, j];
+            }
+        }
+    }
+    return null;
+}
+
+async function spawnPlayer(username, token) {
+    var armour = await getPlayerInfo(token);
+    const emptyTile = findEmptyTile();
+    if (emptyTile != null) {
+        const y = emptyTile[0];
+        const x = emptyTile[1];
+        world[y][x] = new PlayerTile(username, armour);
+        changes.push({ x: x, y: y, type: "player", armour: armour, username: username });
+        players[username] = { 
+            x: x,
+            y: y,
+            armour: armour
+        };
+        currentPlayers++;
+        broadcastChanges();
+    }
+}
+
+function newPlayerRequest(ws, userToken) {
+    jwt.verify(userToken, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+        if (err) {
+            ws.send(JSON.stringify({ error: "User is unauthorized to access resource." }));
+            ws.close(4403);
+        } else {
+            ws.send(JSON.stringify({ world: world }));
+            if (players[user.username]) { // user is already logged in so remove the current instance and respawn them
+                deletePlayer(user.username);
+            }
+            if (currentPlayers < maxPlayers) {   
+                spawnPlayer(user.username, userToken);
+            } else {
+                ws.send(JSON.stringify({ error: "Server has reached player capacity. Please try again later." }));
+                ws.close(4503);
+            }
+        }
+    });
+}
+
+function deletePlayer(username) {
+    const player = players[username];
+    world[player.y][player.x] = new Tile("blank");
+    changes.push({ x: player.x, y: player.y, type: "blank" });
+    delete players[username];
+    currentPlayers--;
+    broadcastChanges();
+}
+
+function logoutRequest(ws, userToken) {
+    jwt.verify(userToken, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+        if (err) {
+            ws.send(JSON.stringify({ error: "User is unauthorized to make this request." }));
+        } else {
+            deletePlayer(user.username);
+        }
+    });
+}
+
+function performMove(currentTile, direction) {
+    const nextTile = [currentTile[0] + direction[0], currentTile[1] + direction[1]];
+    if (world[nextTile[0]][nextTile[1]].type === "box") {
+        performMove(nextTile, direction);
+    } 
+    if (world[nextTile[0]][nextTile[1]].type === "blank") {
+        const temp = world[currentTile[0]][currentTile[1]];
+        world[currentTile[0]][currentTile[1]] = new Tile("blank");
+        changes.push({ x: currentTile[1], y: currentTile[0], type: "blank"});
+        world[nextTile[0]][nextTile[1]] = temp;
+        if (temp.type === "player") {
+            changes.push({ x: nextTile[1], y: nextTile[0], type: "player", username: temp.username, armour: temp.armour });
+            players[temp.username] = { x: nextTile[1], y: nextTile[0], armour: temp.armour };
+        } else {
+            changes.push({ x: nextTile[1], y: nextTile[0], type: temp.type });
+        }
+    }
+}
+
+function movePlayer(ws, userToken, direction) {
+    jwt.verify(userToken, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+        if (err) {
+            ws.send(JSON.stringify({ error: "User is unauthorized to make this request." }));
+        } else {
+            // i is vertical, j is horizontal
+            const dirMap = {
+                "up": [-1, 0],
+                "down": [1, 0],
+                "left": [0, -1],
+                "right": [0, 1]
+            };
+            if (players[user.username]) {
+                const player = players[user.username];
+                const playerTile = [player.y, player.x];
+                performMove(playerTile, dirMap[direction]);
+                broadcastChanges();
+            }
+        }
+    });
+}
+
+function parseRequest(ws, clientMessage) {
+    if (clientMessage.request) {
+        const req = clientMessage.request;
+        switch(req) {
+            case "new":
+                newPlayerRequest(ws, clientMessage.user);
+                break;
+            case "logout":
+                logoutRequest(ws, clientMessage.user);
+                break;
+            case "up":
+                movePlayer(ws, clientMessage.user, "up");
+                break;
+            case "down":
+                movePlayer(ws, clientMessage.user, "down");
+                break;
+            case "left":
+                movePlayer(ws, clientMessage.user, "left");
+                break;
+            case "right":
+                movePlayer(ws, clientMessage.user, "right");
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+
+/**************** Database/API ******/
+function getPlayerInfo(token) {
+    const config = { 
+        headers: { Authorization: `Bearer ${token}` } 
+    };
+    return axios.get('http://www.test.com:4000/players/armour', config) //TODO relative path
+    .then((res) => {
+        return res.data;
+    }).catch(() => {
+        return "default";
+    });
+}
+
+/**************** Sockets ***********/
 const wss = new WebSocket.Server({
     port: port
 });
 
-let world={};
-let monsterArray=[];
-const interval = 1000;
-let changes={};
-const tiles = 16; //world is 15x15
-let clients = [];
-let numMonsters = 0;
-	
-generateWorld();
-setInterval(function(){
-    for(let i=0;i<monsterArray.length;i++){
-        if (isTrapped(monsterArray[i])){
-            killMonster(monsterArray[i]);
-        }
-        moveMonster(monsterArray[i]);
-    }
-    broadcastChanges();
-}, interval);
-	
-function killMonster(monster){
-	world[monster.x+"-"+monster.y]="blank";
-	changes[monster.x+"-"+monster.y]="blank";
-	broadcastChanges();
-	numMonsters--;
-}
-	
-function isTrapped(monster){
-	let trapped = true;
-	let lst=[];
-	lst.push(getMoveCoord(monster.x,monster.y,"N"));
-	lst.push(getMoveCoord(monster.x,monster.y,"S"));
-	lst.push(getMoveCoord(monster.x,monster.y,"E"));
-	lst.push(getMoveCoord(monster.x,monster.y,"W"));
-	lst.push(getMoveCoord(monster.x,monster.y,"NE"));
-	lst.push(getMoveCoord(monster.x,monster.y,"NW"));
-	lst.push(getMoveCoord(monster.x,monster.y,"SE"));
-	lst.push(getMoveCoord(monster.x,monster.y,"SW"));
-	for (let i=0;i<lst.length;i++){
-		const actor = world[lst[i][0]+"-"+lst[i][1]];
-		if (actor != "wall" && actor != "box"){
-			trapped=false;
-			break;
-		}
-	}
-	return trapped;
-}
-
-function broadcastChanges(){
-	wss.broadcast(JSON.stringify(changes));
-	changes={};
-}
-
-function generateWorld(){
-	for (let i = 1; i < tiles; i++){
-		for (let j = 1; j < tiles; j++){
-			const num = Math.random();
-			if (j == 1 || j == tiles - 1 || i == 1 || i == tiles - 1){
-				world[i+"-"+j]="wall";
-			} else if (num < 0.35){
-				world[i+"-"+j]="box";
-			} else if (num < 0.38) {
-				monsterArray.push(new Monster(i, j, getRandDir()));
-				numMonsters++;
-				world[i+"-"+j]="monster";
-			} else {
-				world[i+"-"+j]="blank";
-			}
-		}
-	}
-}
-
-function getRandDir(){
-	const num = Math.random();
-	if (num < 0.125){
-		return "N";
-	} else if (num >= 0.125 && num < 0.25){
-		return "S";
-	} else if (num >= 0.25 && num < 0.375){
-		return "E";
-	} else if (num >= 0.375 && num < 0.50){
-		return "W";
-	} else if (num >= 0.5 && num < 0.625){
-		return "NE";
-	} else if (num >= 0.625 && num < 0.75){
-		return "NW";
-	} else if (num >= 0.75 && num < 0.875){
-		return "SW";
-	} else {
-		return "SE";
-	}
-}
-
-function moveMonster(monster){
-	const lst = getMoveCoord(monster.x, monster.y, monster.direction);
-	const actor = world[lst[0]+"-"+lst[1]];
-	if (actor=="blank"){
-		world[monster.x+"-"+monster.y]="blank";
-		changes[monster.x+"-"+monster.y]="blank";
-		monster.x=lst[0];
-		monster.y=lst[1];
-		world[lst[0]+"-"+lst[1]]="monster";
-		changes[lst[0]+"-"+lst[1]]="monster";
-	} else {
-		monster.direction=getRandDir();
-	}
-}
-
-function getMoveCoord(x, y, direction){
-	let retVal = [];
-	switch(direction){
-		case "N":
-			y-=1;
-			break;
-		case "S":
-			y+=1;
-			break;
-		case "E":
-			x+=1;
-			break;
-		case "W":
-			x-=1;
-			break;
-		case "NE":
-			y-=1;
-			x+=1;
-			break;
-		case "NW":
-			y-=1;
-			x-=1;
-			break;
-		case "SE":
-			y+=1;
-			x+=1;
-			break;
-		case "SW":
-			y+=1;
-			x-=1;
-			break;
-		default:
-			break;
-	}
-	retVal.push(x);
-	retVal.push(y);
-	return retVal;
-}
-
-function getOppositeDirection(direction){
-	let retVal = "";
-	switch(direction){
-		case "N":
-			retVal += "S";
-			break;
-		case "S":
-			retVal +=  "N";
-			break;
-		case "E":
-			retVal +=  "W";
-			break;
-		case "W":
-			retVal +=  "E";
-			break;
-		case "NE":
-			retVal +=  "SW";
-			break;
-		case "NW":
-			retVal +=  "SE";
-			break;
-		case "SE":
-			retVal +=  "NW";
-			break;
-		case "SW":
-			retVal +=  "NE";
-			break;
-		default:
-			break;
-	}
-	return retVal;
-}
-
-
-function Player(name, x, y){
-	this.name=name;
-	this.x=x;
-	this.y=y;
-}
-
-function Monster(x, y, direction){
-	this.x=x;
-	this.y=y;
-	this.direction=direction;
-}
-
-function placePlayer(player){
-	for (let i = 1; i < tiles; i++){
-		for (let j = 1; j <tiles; j++){
-			if (world[i+"-"+j]=="blank"){
-				world[i+"-"+j]=player;
-				changes[i+"-"+j]=player;
-				broadcastChanges();
-				return;
-			}
-		}
-	}
-}
-
-function removePlayer(player){
-	for (let i = 1; i < tiles; i++){
-		for (let j = 1; j <tiles; j++){
-			if (world[i+"-"+j]==player){
-				world[i+"-"+j]="blank";
-				changes[i+"-"+j]="blank";
-				broadcastChanges();
-				return;
-			}
-		}
-	}
-}
-
-function movePlayer(direction, name, location){
-	const coord = location.split("-");
-	const x=parseInt(coord[0]);
-	const y=parseInt(coord[1]);
-	const result = getMoveCoord(x, y, direction);
-	const newSquare = result[0]+"-"+result[1];
-	if (world[newSquare]=="blank"){
-		world[location]="blank";
-		changes[location]="blank";
-		world[newSquare]=name;
-		changes[newSquare]=name;
-		broadcastChanges();
-	} else if (world[newSquare]=="box"){
-		if (canMoveBox(newSquare, direction)){
-			moveBox(newSquare, direction);
-			movePlayer(direction, name, location);
-		}
-	}
-}
-
-function moveBox(box, direction){
-	const coord = box.split("-");
-	const x=parseInt(coord[0]);
-	const y=parseInt(coord[1]);	
-	const lst = getMoveCoord(x, y, direction);
-	const nextActor=world[lst[0]+"-"+lst[1]];
-	if (nextActor=="blank"){
-		world[box]="blank";
-		world[lst[0]+"-"+lst[1]]="box";
-		changes[box]="blank";
-		changes[lst[0]+"-"+lst[1]]="box";
-	} else if (nextActor=="box"){
-		moveBox(lst[0]+"-"+lst[1], direction);
-	}
-}
-
-function canMoveBox(box, direction){
-	const coord = box.split("-");
-	const x=parseInt(coord[0]);
-    const y=parseInt(coord[1]);
-	const lst = getMoveCoord(x, y, direction);
-	const nextSquare = world[lst[0]+"-"+lst[1]];
-	if (nextSquare=="blank"){
-		return true;
-	} else if (nextSquare=="box"){
-		return canMoveBox(lst[0]+"-"+lst[1], direction);
-	} else {
-		return false;
-	}
-}
-
-function parseRequest(message){
-	//request, name, location
-	console.log(message.request);
-	if (message.request === "new"){
-		//placePlayer(message[1]);
-	} else if (message.request === "logout"){
-		removePlayer(message[1]);
-	} else if (message[0]=="N" || message[0]=="S" || message[0]=="E" || message[0]=="W"){
-		movePlayer(message[0], message[1], message[2]);
-	}
-}
-
-wss.on('close', function() {
+wss.on('close', () => {
     console.log('disconnected');
 });
 
-wss.broadcast = function(message){
- 	for(let ws of this.clients){ 
-		ws.send(message, function(error){}); 
-	} 
-
-	// Alternatively
-/* 	this.clients.forEach(function (ws){ 
-		ws.send(message);
-	}); */
+wss.broadcast = function(message) {
+    for(let ws of this.clients){ 
+       ws.send(message, (error) => {
+           if (error) {
+               console.log(error);
+           }
+       }); 
+   } 
 }
 
-wss.on('connection', function(ws) {
-	ws.send(JSON.stringify(world));
-	ws.on('message', function(clientMessage) {
-		const message = JSON.parse(clientMessage);
-		parseRequest(message);
+wss.on('connection', (ws) => {
+	ws.on('message', (clientMessage) => {
+        clientMessage = JSON.parse(clientMessage);
+        parseRequest(ws, clientMessage);
 	});
 });
