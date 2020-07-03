@@ -25,22 +25,60 @@ class PlayerTile extends Tile {
 
 
 /************* Game **************/
+const gameDuration = 5 * 60 * 1000// in milliseconds
 const dimensions = 15;
-const interval = 1000; // time in ms it takes for world to update
+const gameRefreshRate = 1000; // time in ms it takes for world to update
 const maxPlayers = 5;
+const scorePerMonster = 1;
+const clearingMapBonus = 5;
 let world = Array(dimensions).fill().map(() => Array(dimensions).fill(null));
-//let numMonsters = 0;
+let numMonsters = 0;
+let score = 0;
 let monsters = [];
 let changes = [];
 let players = {};
 let currentPlayers = 0;
+let matchStartTime;
+let gameRefreshInterval = null;
 
 
-generateWorld();
+startNewGame();
 setInterval(() => {
+    wss.disconnectUsers(score);
+    startNewGame();
+}, gameDuration);
+
+function startNewGame() {
+    resetPreviousMatchStats();
+    generateWorld();
+    matchStartTime = new Date().getTime();
+    gameRefreshInterval = setInterval(() => {
+        updateGameStates();
+        wss.broadcast(JSON.stringify({ time: matchDurationRemaining() }));
+    }, gameRefreshRate);
+}
+
+function resetPreviousMatchStats() {
+    numMonsters = 0;
+    score = 0;
+    monsters = [];
+    changes = [];
+    players = {}
+    currentPlayers = 0;
+    if (gameRefreshInterval) {
+        clearInterval(gameRefreshInterval);
+    }
+}
+
+function matchDurationRemaining () {
+    // returns time left in current match (in seconds)
+    return Math.floor(((new Date(matchStartTime + gameDuration)) - new Date().getTime()) / 1000); 
+}
+
+function updateGameStates() {
     updateMonsters();
     broadcastChanges();
-}, interval);
+}
 
 function broadcastChanges() {
     if (changes.length > 0) {
@@ -53,12 +91,24 @@ function updateMonsters() {
     for (let i = 0; i < monsters.length; i++) {
         if (isTrapped(monsters[i])) {
             killMonster(i);
+            updateScore();
+            wss.broadcast(JSON.stringify({
+                numberMonsters: numMonsters,
+                score: score
+            }));
         } else {
             const newCoordinates = moveMonster(monsters[i]);
             //update monster changes
             monsters[i].x = newCoordinates.x;
             monsters[i].y = newCoordinates.y;
         }
+    }
+}
+
+function updateScore() {
+    score += scorePerMonster;
+    if (score === numMonsters) {
+        score += clearingMapBonus;
     }
 }
 
@@ -82,6 +132,7 @@ function killMonster(index) {
     world[monster.y][monster.x] = new Tile("blank");
     monsters.splice(index, 1);
     changes.push({ x: monster.x, y: monster.y, type: "blank" });
+    numMonsters--;
     broadcastChanges();
 }
 
@@ -115,7 +166,7 @@ function generateWorld() {
             } else if (randomNumber < 0.39) {
                 world[i][j] = new Tile("monster");
                 monsters.push({ x: j, y: i });
-                //numMonsters++;
+                numMonsters++;
             } else {
                 world[i][j] = new Tile("blank");
             }
@@ -158,7 +209,12 @@ function newPlayerRequest(ws, userToken) {
             ws.send(JSON.stringify({ error: "User is unauthorized to access resource." }));
             ws.close(4403);
         } else {
-            ws.send(JSON.stringify({ world: world }));
+            ws.send(JSON.stringify({ 
+                world: world, 
+                time: matchDurationRemaining(),
+                score: score,
+                numberMonsters: numMonsters
+            }));
             if (players[user.username]) { // user is already logged in so remove the current instance and respawn them
                 deletePlayer(user.username);
             }
@@ -291,6 +347,13 @@ wss.broadcast = function(message) {
            }
        }); 
    } 
+}
+
+wss.disconnectUsers = function(points) {
+    for (let ws of this.clients) {
+        ws.send(JSON.stringify({ "restart": points }));
+        ws.close(1000);
+    }
 }
 
 wss.on('connection', (ws) => {

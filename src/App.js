@@ -4,8 +4,8 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { BrowserRouter as Router, Route, Redirect } from "react-router-dom";
 import './App.css';
 
-import Login from "./components/Login"
-import Register from "./components/Register"
+import Login from "./components/Login";
+import Register from "./components/Register";
 import NavigationBar from "./components/NavigationBar";
 import Leaderboards from "./components/Leaderboards";
 import Game from "./components/Game";

@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 import './Game.css';
 
+import GameStats from "./GameStats";
+
 const wall = require('../icons/wall.png');
 const blank = require('../icons/blank.gif');
 const monster = require('../icons/monster.png');
@@ -32,7 +34,10 @@ class Game extends Component {
         this.state = {
             connect: false,
             board: Array(15).fill().map(() => Array(15).fill(null)),
-            message: ""
+            message: "",
+            timer: "",
+            score: 0,
+            numberMonsters: 0
         }
     }
 
@@ -75,15 +80,29 @@ class Game extends Component {
                 const msg = JSON.parse(message.data);
                 if (msg.world){
                     this.setState({ board: msg.world });
-                } else if (msg.changes) {
+                } 
+                if (msg.time) {
+                    this.setState({ timer: msg.time });
+                }
+                if (msg.changes) {
                     const newBoard = this.state.board;
                     for (let i = 0; i < msg.changes.length; i++) {
                         newBoard[msg.changes[i].y][msg.changes[i].x] = msg.changes[i];
                     }
                     this.setState({ board: newBoard });
-                } else if (msg.error) {
+                } 
+                if (msg.error) {
                     alert(msg.error);
                 }  
+                if (msg.score != null) {
+                    this.setState({ score: msg.score });
+                }
+                if (msg.numberMonsters != null) {
+                    this.setState({ numberMonsters: msg.numberMonsters });
+                }
+                if (msg.restart != null) {
+                    alert("The match has ended, your final score is : " + msg.restart);
+                }
             }
         }
     }
@@ -147,6 +166,12 @@ class Game extends Component {
                         <tbody>{this.renderTable()}</tbody>
                     </table>
                     <button onClick={this.disconnectFromGame}>Disconnect</button>
+                    <br/>
+                    <GameStats 
+                        timer={this.state.timer}
+                        score={this.state.score}
+                        numberMonsters={this.state.numberMonsters}
+                    />
                     <br/>
                     All icons are courtesy of <a href="https://icons8.com/">icons8</a>
                 </div>      
