@@ -110,7 +110,10 @@ class App extends Component { //TODO move to components folder
           <NavigationBar />
           <Route path="/leaderboards" component={Leaderboards}/>
           <Route path="/logout" render={() => {this.handleLogout();}}/>
-          <Route path="/game" render={() => (<Game accessToken={this.state.accessToken}/>)}/>
+          <Route path="/game" render={() => (<Game 
+            accessToken={this.state.accessToken}
+            username={this.state.username}
+          />)}/>
         </Router>
       );
     } else {

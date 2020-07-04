@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import './Game.css';
 
 import GameStats from "./GameStats";
+import Chatbox from "./Chatbox";
 
 const wall = require('../icons/wall.png');
 const blank = require('../icons/blank.gif');
@@ -25,6 +26,8 @@ class Game extends Component {
 
         this.client = null;
 
+        this.sendChatMessage = this.sendChatMessage.bind(this);
+        this.sendRequestWithMessage = this.sendRequestWithMessage.bind(this);
         this.sendRequest = this.sendRequest.bind(this);
         this.handleKeypress = this.handleKeypress.bind(this);
         this.renderTable = this.renderTable.bind(this);
@@ -37,7 +40,8 @@ class Game extends Component {
             message: "",
             timer: "",
             score: 0,
-            numberMonsters: 0
+            numberMonsters: 0,
+            chatMessages: []
         }
     }
 
@@ -54,8 +58,13 @@ class Game extends Component {
     }
 
     sendRequest(request) {
+        this.sendRequestWithMessage(request, null);
+    }
+
+    sendRequestWithMessage(request, userMessage) {
         this.client.send(JSON.stringify({
             request: request,
+            message: userMessage,
             user: this.props.accessToken
         }));
     }
@@ -102,6 +111,15 @@ class Game extends Component {
                 }
                 if (msg.restart != null) {
                     alert("The match has ended, your final score is : " + msg.restart);
+                    this.setState({ chatMessages: [] });
+                }
+                if (msg.chat) {
+                    let chats = this.state.chatMessages;
+                    if (chats.length === 5) {  
+                        chats.shift(); // remove the oldest chat message
+                    }  
+                    chats.push(msg.chat);
+                    this.setState({ chatMessages: chats });
                 }
             }
         }
@@ -132,10 +150,17 @@ class Game extends Component {
     }
 
     disconnectFromGame() {
-        this.setState({ connect: false });
+        this.setState({ 
+            connect: false,
+            chatMessages: []
+        });
         this.sendRequest("logout");
         this.client.close();
         console.log('Disconnected');
+    }
+
+    sendChatMessage(message) {
+        this.sendRequestWithMessage("chat", message);
     }
 
     renderTable() {
@@ -173,6 +198,11 @@ class Game extends Component {
                         numberMonsters={this.state.numberMonsters}
                     />
                     <br/>
+                    <Chatbox 
+                        username={this.props.username}
+                        chatMessages={this.state.chatMessages}
+                        sendChatMessage={this.sendChatMessage}
+                    />
                     All icons are courtesy of <a href="https://icons8.com/">icons8</a>
                 </div>      
             );

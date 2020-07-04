@@ -31,6 +31,7 @@ const gameRefreshRate = 1000; // time in ms it takes for world to update
 const maxPlayers = 5;
 const scorePerMonster = 1;
 const clearingMapBonus = 5;
+const maxChatMessageLength = 150;
 let world = Array(dimensions).fill().map(() => Array(dimensions).fill(null));
 let numMonsters = 0;
 let score = 0;
@@ -288,6 +289,31 @@ function movePlayer(ws, userToken, direction) {
     });
 }
 
+function handleChatMessage(ws, userToken, chatMessage) {
+    jwt.verify(userToken, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+        if (err) {
+            ws.send(JSON.stringify({ error: "User is unauthorized to make this request." }));
+        } else {
+            const username = user.username;
+            let armour = "default";
+            if (players[username]) {
+                armour = players[username].armour;
+            }
+            if (chatMessage.length > maxChatMessageLength) {
+                chatMessage = chatMessage.substring(0, maxChatMessageLength);
+            }
+            wss.broadcast(JSON.stringify({
+                chat: {
+                    armour: armour,
+                    user: username,
+                    time: Date.now(),
+                    message: chatMessage
+                }
+            }));
+        }
+    });
+}
+
 function parseRequest(ws, clientMessage) {
     if (clientMessage.request) {
         const req = clientMessage.request;
@@ -309,6 +335,9 @@ function parseRequest(ws, clientMessage) {
                 break;
             case "right":
                 movePlayer(ws, clientMessage.user, "right");
+                break;
+            case "chat":
+                handleChatMessage(ws, clientMessage.user, clientMessage.message);
                 break;
             default:
                 break;
@@ -358,7 +387,11 @@ wss.disconnectUsers = function(points) {
 
 wss.on('connection', (ws) => {
 	ws.on('message', (clientMessage) => {
-        clientMessage = JSON.parse(clientMessage);
-        parseRequest(ws, clientMessage);
+        try {
+            clientMessage = JSON.parse(clientMessage);
+            parseRequest(ws, clientMessage);
+        } catch (e) {
+            console.log(e);
+        }
 	});
 });

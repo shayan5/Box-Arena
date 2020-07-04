@@ -6,3 +6,7 @@
 tr {
     height: 24px;
 }
+
+button {
+    border-radius: 5px;
+}

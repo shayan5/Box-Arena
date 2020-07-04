@@ -1,0 +1,35 @@
+.container {
+    border: 2px solid rgb(17, 17, 17);
+    background-color: #f1f1f1;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+.darker {
+    background-color: rgb(136, 90, 90);
+}
+
+.container img {
+    float: left;
+    max-width: 40px;
+    width: 100%;
+    margin-right: 20px;
+    border-radius: 50%;
+}
+
+.time-right {
+    float: right;
+    color: #aaa;
+}
+
+.send-text {
+    width: 78%;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+.send-button {
+    width: 18%;
+    padding: 5px;
+}
+  
