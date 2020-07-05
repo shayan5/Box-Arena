@@ -152,9 +152,14 @@ router.route('/refresh-token').post((req, res) => {
     })
 });
 
-function authenticateToken(req, res, next){
+function extractAuthToken(req) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
+    return token;
+}
+
+function authenticateToken(req, res, next) {
+    const token = extractAuthToken(req);
     if (token == null){
         return res.sendStatus(401);
     }
@@ -167,5 +172,14 @@ function authenticateToken(req, res, next){
     });
 }
 
+function authenticateGameServer(req, res, next) {
+    const token = extractAuthToken(req);
+    if (token !== process.env.GAME_SERVER_TOKEN_SECRET) {
+        return res.sendStatus(403);
+    } 
+    next();
+}
+
 module.exports = router;
 module.exports.authenticateToken = authenticateToken;
+module.exports.authenticateGameServer = authenticateGameServer;

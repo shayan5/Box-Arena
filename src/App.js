@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import axios from 'axios';
 import "bootstrap/dist/css/bootstrap.min.css";
-import { BrowserRouter as Router, Route, Redirect } from "react-router-dom";
+import { BrowserRouter as Router, Route, Redirect, Switch } from "react-router-dom";
 import './App.css';
 
 import Login from "./components/Login";
@@ -45,7 +45,6 @@ class App extends Component { //TODO move to components folder
    * the access token without a disruption in.
   ***/
   getTimeToRenewToken(expiry) {
-    //return 5000;
     return (new Date(expiry) - new Date().getTime() - (5 * 60)) * 1000; // includes 5min buffer
   }
 
@@ -108,22 +107,28 @@ class App extends Component { //TODO move to components folder
       return (
         <Router>
           <NavigationBar />
-          <Route path="/leaderboards" component={Leaderboards}/>
-          <Route path="/logout" render={() => {this.handleLogout();}}/>
-          <Route path="/game" render={() => (<Game 
-            accessToken={this.state.accessToken}
-            username={this.state.username}
-          />)}/>
+          <Switch>
+            <Route path="/leaderboards" component={Leaderboards}/>
+            <Route path="/logout" render={() => {this.handleLogout();}}/>
+            <Route path="/game" render={() => (
+                <Game 
+                  accessToken={this.state.accessToken}
+                  username={this.state.username}
+                />
+              )}
+            />
+            <Redirect from="*" to="/"/>
+          </Switch>
         </Router>
       );
     } else {
       return (
         <Router>
-          <Route exact path="/">
-            <Redirect to="/login" />
-          </Route>
-          <Route path="/login" render={() => (<Login handleLogin={this.handleLogin}/>)} />
-          <Route path="/register" component={Register}/>
+          <Switch>
+            <Route path="/login" render={() => (<Login handleLogin={this.handleLogin}/>)} />
+            <Route path="/register" component={Register}/>
+            <Redirect from="*" to="/login"/>
+          </Switch>
         </Router>
       );
     }

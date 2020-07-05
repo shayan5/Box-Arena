@@ -6,6 +6,9 @@ class Leaderboards extends Component {
     constructor(props) {
         super(props);
 
+        this.renderTableRows = this.renderTableRows.bind(this);
+        this.fetchScores = this.fetchScores.bind(this);
+
         this.state = {
             data: [],
             message: ''
@@ -13,6 +16,10 @@ class Leaderboards extends Component {
     }
 
     componentDidMount() {
+        this.fetchScores();
+    }
+
+    fetchScores() {
         axios.get('http://localhost:4000/players/highscores') //TODO change to relative path
         .then((res) => {
             if (res.data) {

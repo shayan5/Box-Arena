@@ -30,6 +30,7 @@ const dimensions = 15;
 const gameRefreshRate = 1000; // time in ms it takes for world to update
 const maxPlayers = 5;
 const scorePerMonster = 1;
+const currencyMultiplier = 1; // amount of currency earned per score
 const clearingMapBonus = 5;
 const maxChatMessageLength = 150;
 let world = Array(dimensions).fill().map(() => Array(dimensions).fill(null));
@@ -45,6 +46,7 @@ let gameRefreshInterval = null;
 
 startNewGame();
 setInterval(() => {
+    updatePlayerRewards(players, score);
     wss.disconnectUsers(score);
     startNewGame();
 }, gameDuration);
@@ -357,6 +359,22 @@ function getPlayerInfo(token) {
     }).catch(() => {
         return "default";
     });
+}
+
+function updatePlayerRewards(players, score) {
+    const playerArray = Object.keys(players);
+    if (score > 0 && playerArray.length > 0) {
+        const config = {
+            headers: { Authorization: `Bearer ${process.env.GAME_SERVER_TOKEN_SECRET}` }
+        };
+        axios.post('http://www.test.com:4000/players/update-rewards', { //TODO change to relative paht
+            players: playerArray,
+            score: score,
+            currency: score * currencyMultiplier
+        }, config).then().catch((err) => {
+            console.log(err);
+        });
+    }
 }
 
 /**************** Sockets ***********/

@@ -12,6 +12,30 @@ router.route('/unlocks').get(auth.authenticateToken, (req, res) => {
     });
 });
 
+router.route('/update-rewards').post(auth.authenticateGameServer, (req, res) => {
+    const players = req.body.players;
+    const currency = req.body.currency;
+    const points = req.body.score;
+    if (players && players.length > 0 && currency && points) {
+        Player.updateMany({ 
+            username: { 
+                $in : players
+            } 
+        }, { $inc: {
+                currency: currency,
+                points: points
+            }
+        }, (err) => {
+            if (err) {
+                return res.sendStatus(500);
+            }
+            return res.sendStatus(200);
+        });
+    } else {
+        return res.sendStatus(400);
+    }
+});
+
 router.route('/currency').get(auth.authenticateToken, (req, res) => {
     Player.findOne({username: req.username}, 'currency', (err, docs) => {
         if (err) {
