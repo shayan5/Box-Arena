@@ -1,0 +1,25 @@
+.shopItemDiv {
+    border: 5px solid black;
+    border-radius: 5px;
+    display: inline-block;
+    padding: 2px 16px;
+}
+
+.shopItemImg {
+    width: 40px;
+    height: auto;
+    object-fit: contain;
+}
+
+.card {
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+    transition: 0.3s;
+}
+  
+.card:hover {
+    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+}
+
+.container {
+    padding: 2px 16px;
+}

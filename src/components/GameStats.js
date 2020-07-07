@@ -4,7 +4,7 @@ import './GameStats.css';
 class GameStats extends Component {
     render() {
         return (
-            <div id="gameTimer" className="container">
+            <div className="gameTimer">
                 Time remaining: {Math.floor(this.props.timer / 60)} minutes {this.props.timer % 60} seconds
                 <br/>
                 Monsters remaining: {this.props.numberMonsters}

@@ -77,7 +77,7 @@ class Login extends Component {
             <FormControl 
               type="password" 
               value={this.state.password}
-              placeholder="Password"
+              placeholder="Enter password"
               autoComplete="on"
               onChange={this.onChangePassword}
             />

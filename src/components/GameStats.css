@@ -1,4 +1,5 @@
-#gameTimer {
-    text-align: center;
+.gameTimer {
     border-style: solid;
+    display: inline-block;
+    border-radius: 5px;
 }

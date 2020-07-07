@@ -9,6 +9,7 @@ import Register from "./components/Register";
 import NavigationBar from "./components/NavigationBar";
 import Leaderboards from "./components/Leaderboards";
 import Game from "./components/Game";
+import Shop from "./components/Shop";
 
 class App extends Component { //TODO move to components folder
   constructor(props) {
@@ -117,7 +118,14 @@ class App extends Component { //TODO move to components folder
                 />
               )}
             />
-            <Redirect from="*" to="/"/>
+            <Route path="/shop" render={() => (
+                <Shop 
+                  accessToken={this.state.accessToken}
+                  username={this.state.username}
+                />
+              )}
+            />
+            <Redirect from="*" to="/game"/>
           </Switch>
         </Router>
       );
