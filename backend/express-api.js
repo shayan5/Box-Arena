@@ -39,6 +39,10 @@ app.use('/authentication', authenticationRouter);
 const playersRouter = require('./routes/players');
 app.use('/players', playersRouter);
 
+// api for item store operations
+const itemsRouter = require('./routes/items');
+app.use('/items', itemsRouter);
+
 app.listen(port, () => {
     console.log("Server is listening on port: " + port);
 });

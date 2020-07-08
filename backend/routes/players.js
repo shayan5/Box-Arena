@@ -12,6 +12,19 @@ router.route('/unlocks').get(auth.authenticateToken, (req, res) => {
     });
 });
 
+router.route('/basic-info').get(auth.authenticateToken, (req, res) => {
+    Player.findOne(
+        { username: req.username }, 
+        { currency: 1, _id: 0, unlocks: 1, armour: 1 }, 
+        (err, docs) => {
+            if (err) {
+                return res.sendStatus(404);
+            }
+            return res.json(docs);
+        }
+    );
+});
+
 router.route('/update-rewards').post(auth.authenticateGameServer, (req, res) => {
     const players = req.body.players;
     const currency = req.body.currency;
@@ -63,6 +76,33 @@ router.route('/points').get(auth.authenticateToken, (req, res) => {
         }
         const player = new Player(docs);
         return res.json(player.points);
+    });
+});
+
+router.route('/change-equipment').post(auth.authenticateToken, (req, res) => {
+    const item = req.body.item;
+    if (!item) {
+        return res.sendStatus(400);
+    }
+    Player.findOne({username: req.username}, 'unlocks', (err, docs) => {
+        if (err) {
+            return res.sendStatus(404);
+        }
+        const player = new Player(docs);
+        if (player.unlocks.includes(item)) {
+            Player.updateOne(
+                { username: req.username }, 
+                { $set: { armour: item } }, 
+                (err) => {
+                    if (err) {
+                        return res.sendStatus(500);
+                    }
+                    return res.sendStatus(204);
+                }
+            );
+        } else {
+            return res.sendStatus(400);
+        }
     });
 });
 

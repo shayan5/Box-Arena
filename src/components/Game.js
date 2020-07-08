@@ -8,8 +8,17 @@ const wall = require('../icons/wall.png');
 const blank = require('../icons/blank.gif');
 const monster = require('../icons/monster.png');
 const box = require('../icons/box.png');
+
 const defaultArmour = require('../icons/default.png');
 const pirate = require('../icons/pirate.png');
+const ninja = require('../icons/ninja.png');
+const alien = require('../icons/alien.png');
+const astronaut = require('../icons/astronaut.png');
+const mummy = require('../icons/mummy.png');
+const robot = require('../icons/robot.png');
+const spy = require('../icons/spy.png');
+const wrestler = require('../icons/wrestler.png');
+
 
 const images = {
     "blank": blank,
@@ -17,7 +26,14 @@ const images = {
     "monster": monster,
     "box": box,
     "default": defaultArmour,
-    "pirate": pirate
+    "pirate": pirate,
+    "ninja": ninja,
+    "alien": alien,
+    "astronaut": astronaut,
+    "mummy": mummy,
+    "robot": robot,
+    "spy": spy,
+    "wrestler": wrestler
 }
 
 class Game extends Component {
