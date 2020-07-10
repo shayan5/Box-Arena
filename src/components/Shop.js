@@ -11,6 +11,7 @@ class Shop extends Component {
         this.renderIndividualItems = this.renderIndividualItems.bind(this);
         this.getShopItems = this.getShopItems.bind(this);
         this.equipItem = this.equipItem.bind(this);
+        this.purchaseItem = this.purchaseItem.bind(this);
         this.getPlayerInfo = this.getPlayerInfo.bind(this);
 
         this.state = {
@@ -73,9 +74,30 @@ class Shop extends Component {
                     canEquip={!equipped && purchased}
                     canPurchase={this.state.balance >= item.cost}
                     changeEquipment={this.equipItem}
+                    purchaseEquipment={this.purchaseItem}
                 />
             );
         })
+    }
+
+    purchaseItem(item) {
+        const config = {
+            headers: { Authorization: `Bearer ${this.props.accessToken}` }
+        };
+        axios.post('http://localhost:4000/players/purchase-item', //TODO relative path
+            { item: item },
+            config)
+        .then((res) => {
+            if (res.data) {
+                this.setState({
+                    unlocked: res.data.unlocks,
+                    balance: res.data.currency
+                });
+            }
+        })
+        .catch((err) => {
+            this.setState({ message: err.response.data });
+        });
     }
 
     equipItem(item) {
