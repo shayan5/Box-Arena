@@ -27,6 +27,7 @@ class ShopItem extends Component {
     constructor(props) {
         super(props);
 
+        this.renderButton = this.renderButton.bind(this);
         this.handleChangeEquipment = this.handleChangeEquipment.bind(this);
         this.handlePurchaseEquipment = this.handlePurchaseEquipment.bind(this);
     }
@@ -39,6 +40,25 @@ class ShopItem extends Component {
         this.props.purchaseEquipment(this.props.itemName);
     }
 
+    renderButton() {
+        if (this.props.purchased) {
+            return (
+                <button 
+                    onClick={this.handleChangeEquipment} 
+                    disabled={!this.props.canEquip}>
+                    {this.props.equipped? "Equipped" : "Equip"}
+                </button>
+            );
+        } else {
+            return (
+                <button 
+                    onClick={this.handlePurchaseEquipment} 
+                    disabled={this.props.purchased || !this.props.canPurchase}>
+                    {"Purchase"}
+                </button>
+            );
+        }
+    }
 
     render() {
         return (
@@ -46,8 +66,7 @@ class ShopItem extends Component {
                 <img className="shopItemImg" src={images[this.props.itemImage]} alt=""></img>
                 <p>Item: {this.props.itemName} </p>
                 <p>Cost: {this.props.itemCost} </p>
-                <button onClick={this.handlePurchaseEquipment} disabled={this.props.purchased || !this.props.canPurchase}>{this.props.purchased? "Owned" : "Purchase"}</button>
-                <button onClick={this.handleChangeEquipment} disabled={!this.props.canEquip}>{this.props.equipped? "Equipped" : "Equip"}</button>
+                {this.renderButton()}
             </div>
         );
     }
