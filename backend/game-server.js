@@ -96,8 +96,10 @@ function updateMonsters() {
             killMonster(i);
             updateScore();
             wss.broadcast(JSON.stringify({
-                numberMonsters: numMonsters,
-                score: score
+                killMonster: {
+                    numberMonsters: numMonsters,
+                    score: score
+                }
             }));
         } else {
             const newCoordinates = moveMonster(monsters[i]);
@@ -212,11 +214,13 @@ function newPlayerRequest(ws, userToken) {
             ws.send(JSON.stringify({ error: "User is unauthorized to access resource." }));
             ws.close(4403);
         } else {
-            ws.send(JSON.stringify({ 
-                world: world, 
-                time: matchDurationRemaining(),
-                score: score,
-                numberMonsters: numMonsters
+            ws.send(JSON.stringify({
+                setup : { 
+                    world: world, 
+                    time: matchDurationRemaining(),
+                    score: score,
+                    numberMonsters: numMonsters
+                }
             }));
             if (players[user.username]) { // user is already logged in so remove the current instance and respawn them
                 deletePlayer(user.username);

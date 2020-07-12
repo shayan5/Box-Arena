@@ -36,12 +36,20 @@ const images = {
     "wrestler": wrestler
 }
 
+const tileScale = 40;
+const boardDimensions = 15;
+
 class Game extends Component {
     constructor(props) {
         super(props);
 
         this.client = null;
+        
+        this.canvasRef = React.createRef();
 
+        this.drawCanvas = this.drawCanvas.bind(this);
+        this.updateCanvas = this.updateCanvas.bind(this);
+        this.updateCanvasTile = this.updateCanvasTile.bind(this);
         this.sendChatMessage = this.sendChatMessage.bind(this);
         this.sendRequestWithMessage = this.sendRequestWithMessage.bind(this);
         this.sendRequest = this.sendRequest.bind(this);
@@ -52,7 +60,7 @@ class Game extends Component {
 
         this.state = {
             connect: false,
-            board: Array(15).fill().map(() => Array(15).fill(null)),
+            board: Array(boardDimensions).fill().map(() => Array(boardDimensions).fill(null)),
             message: "",
             timer: "",
             score: 0,
@@ -85,6 +93,43 @@ class Game extends Component {
         }));
     }
 
+    drawCanvas(board) {
+        for (let i = 0; i < boardDimensions; i++) {
+            for (let j = 0; j < boardDimensions; j++) {
+                const currentTile = board[i][j];
+                let image = "blank";
+                if (currentTile.type === "player") {
+                    image = currentTile.armour;
+                } else {
+                    image = currentTile.type;
+                }
+                this.updateCanvasTile(j, i, image);
+            }
+        }
+    }
+
+    updateCanvasTile(x, y, image) {
+        const canvas = this.canvasRef.current;
+        const ctx = canvas.getContext("2d");
+        const newImage = new Image();
+        newImage.src = images[image];
+        newImage.onload = () => {
+            ctx.drawImage(newImage, x * tileScale, y * tileScale, tileScale, tileScale);
+        }
+    }
+
+    updateCanvas(changes) {
+        for (let i = 0; i < changes.length; i++) {
+            let image = "blank";
+            if (changes[i].type === "player") {
+                image = changes[i].armour
+            } else {
+                image = changes[i].type;
+            }
+            this.updateCanvasTile(changes[i].x, changes[i].y, image);
+        }
+    }
+
     connectToGame() {
         this.client = new WebSocket("ws://www.test.com:4001"); //TODO fix url
         this.client.onopen = () => {
@@ -103,39 +148,45 @@ class Game extends Component {
         this.client.onmessage = (message) => {
             if (message.data) {
                 const msg = JSON.parse(message.data);
-                if (msg.world){
-                    this.setState({ board: msg.world });
-                } 
-                if (msg.time) {
-                    this.setState({ timer: msg.time });
-                }
-                if (msg.changes) {
-                    const newBoard = this.state.board;
-                    for (let i = 0; i < msg.changes.length; i++) {
-                        newBoard[msg.changes[i].y][msg.changes[i].x] = msg.changes[i];
+                if (msg) {
+                    if (msg.setup) {
+                        this.setState({ 
+                            board: msg.setup.world,
+                            timer: msg.setup.time,
+                            score: msg.setup.score,
+                            numberMonsters: msg.setup.numberMonsters 
+                        }, () => {
+                            this.drawCanvas(msg.setup.world);
+                        });
+                    } else if (msg.changes) {
+                        const newBoard = this.state.board;
+                        for (let i = 0; i < msg.changes.length; i++) {
+                            newBoard[msg.changes[i].y][msg.changes[i].x] = msg.changes[i];
+                        }
+                        this.setState({ board: newBoard }, () => {
+                            this.updateCanvas(msg.changes);
+                        });
+                    } else if (msg.chat) {
+                        let chats = this.state.chatMessages;
+                        if (chats.length === 5) {  
+                            chats.shift(); // remove the oldest chat message
+                        }  
+                        chats.push(msg.chat);
+                        this.setState({ chatMessages: chats });
+                    } else if (msg.restart) {
+                        alert("The match has ended, your final score is : " + msg.restart);
+                        this.setState({ chatMessages: [] });
+                        
+                    } else if (msg.error) {
+                        alert(msg.error);
+                    } else if (msg.killMonster) {
+                        this.setState({
+                            score: msg.killMonster.score,
+                            numberMonsters: msg.killMonster.numberMonsters
+                        });
+                    } else if (msg.time) {
+                        this.setState({ timer: msg.time });
                     }
-                    this.setState({ board: newBoard });
-                } 
-                if (msg.error) {
-                    alert(msg.error);
-                }  
-                if (msg.score != null) {
-                    this.setState({ score: msg.score });
-                }
-                if (msg.numberMonsters != null) {
-                    this.setState({ numberMonsters: msg.numberMonsters });
-                }
-                if (msg.restart != null) {
-                    alert("The match has ended, your final score is : " + msg.restart);
-                    this.setState({ chatMessages: [] });
-                }
-                if (msg.chat) {
-                    let chats = this.state.chatMessages;
-                    if (chats.length === 5) {  
-                        chats.shift(); // remove the oldest chat message
-                    }  
-                    chats.push(msg.chat);
-                    this.setState({ chatMessages: chats });
                 }
             }
         }
@@ -203,6 +254,10 @@ class Game extends Component {
         if (this.state.connect){
             return(
                 <div>
+                    <canvas ref={this.canvasRef} height={640} width={640}/>
+
+        
+
                     <table className="gameTable">
                         <tbody>{this.renderTable()}</tbody>
                     </table>
