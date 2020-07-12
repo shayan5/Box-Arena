@@ -114,6 +114,7 @@ class Game extends Component {
         const newImage = new Image();
         newImage.src = images[image];
         newImage.onload = () => {
+            ctx.clearRect(x * tileScale, y * tileScale, tileScale, tileScale);
             ctx.drawImage(newImage, x * tileScale, y * tileScale, tileScale, tileScale);
         }
     }
