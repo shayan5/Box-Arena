@@ -1,12 +1,12 @@
-.gameTile {
-    max-height: 24px;
-    max-width: 24px;
-}
-
-tr {
-    height: 24px;
+.gameBoard {
+    width: 50vw;
+    height: 50vw;
+    border-style: solid;
+    border-width: 2px;
+    display: inline-block;
 }
 
 button {
+    display: block;
     border-radius: 5px;
 }

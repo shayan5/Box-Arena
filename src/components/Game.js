@@ -5,7 +5,7 @@ import GameStats from "./GameStats";
 import Chatbox from "./Chatbox";
 
 const wall = require('../icons/wall.png');
-const blank = require('../icons/blank.gif');
+const blank = require('../icons/blank.png');
 const monster = require('../icons/monster.png');
 const box = require('../icons/box.png');
 
@@ -36,8 +36,9 @@ const images = {
     "wrestler": wrestler
 }
 
-const tileScale = 40;
-const boardDimensions = 15;
+const boardDimensions = 15; 
+const maxChatMessagesDisplayed = 5;
+let resizeTimer;
 
 class Game extends Component {
     constructor(props) {
@@ -45,6 +46,7 @@ class Game extends Component {
 
         this.client = null;
         
+        this.gameBoardRef = React.createRef();
         this.canvasRef = React.createRef();
 
         this.drawCanvas = this.drawCanvas.bind(this);
@@ -54,7 +56,7 @@ class Game extends Component {
         this.sendRequestWithMessage = this.sendRequestWithMessage.bind(this);
         this.sendRequest = this.sendRequest.bind(this);
         this.handleKeypress = this.handleKeypress.bind(this);
-        this.renderTable = this.renderTable.bind(this);
+        this.handleResize = this.handleResize.bind(this);
         this.connectToGame = this.connectToGame.bind(this);
         this.disconnectFromGame = this.disconnectFromGame.bind(this);
 
@@ -65,12 +67,15 @@ class Game extends Component {
             timer: "",
             score: 0,
             numberMonsters: 0,
-            chatMessages: []
+            chatMessages: [],
+            height: "",
+            width: ""
         }
     }
 
     componentDidMount() {
         document.addEventListener('keydown', this.handleKeypress);
+        window.addEventListener('resize', this.handleResize);
     }
 
     componentWillUnmount() {
@@ -79,6 +84,7 @@ class Game extends Component {
             console.log("Disconnected")
         }
         document.removeEventListener('keydown', this.handleKeypress);
+        window.removeEventListener('resize', this.handleResize);
     }
 
     sendRequest(request) {
@@ -94,17 +100,25 @@ class Game extends Component {
     }
 
     drawCanvas(board) {
-        for (let i = 0; i < boardDimensions; i++) {
-            for (let j = 0; j < boardDimensions; j++) {
-                const currentTile = board[i][j];
-                let image = "blank";
-                if (currentTile.type === "player") {
-                    image = currentTile.armour;
-                } else {
-                    image = currentTile.type;
+        const gameBoard = this.gameBoardRef.current;
+        if (gameBoard != null) {
+            this.setState({
+                height: gameBoard.clientHeight,
+                width: gameBoard.clientWidth
+            }, () => {
+                for (let i = 0; i < boardDimensions; i++) {
+                    for (let j = 0; j < boardDimensions; j++) {
+                        const currentTile = board[i][j];
+                        let image = "blank";
+                        if (currentTile.type === "player") {
+                            image = currentTile.armour;
+                        } else {
+                            image = currentTile.type;
+                        }
+                        this.updateCanvasTile(j, i, image);
+                    }
                 }
-                this.updateCanvasTile(j, i, image);
-            }
+            })
         }
     }
 
@@ -112,10 +126,12 @@ class Game extends Component {
         const canvas = this.canvasRef.current;
         const ctx = canvas.getContext("2d");
         const newImage = new Image();
+        const tileScaleX = this.state.width / boardDimensions;
+        const tileScaleY = this.state.height / boardDimensions;
         newImage.src = images[image];
         newImage.onload = () => {
-            ctx.clearRect(x * tileScale, y * tileScale, tileScale, tileScale);
-            ctx.drawImage(newImage, x * tileScale, y * tileScale, tileScale, tileScale);
+            ctx.clearRect(x * tileScaleX, y * tileScaleY, tileScaleX, tileScaleY);
+            ctx.drawImage(newImage, x * tileScaleX, y * tileScaleY, tileScaleX, tileScaleY);
         }
     }
 
@@ -169,7 +185,7 @@ class Game extends Component {
                         });
                     } else if (msg.chat) {
                         let chats = this.state.chatMessages;
-                        if (chats.length === 5) {  
+                        if (chats.length === maxChatMessagesDisplayed) {  
                             chats.shift(); // remove the oldest chat message
                         }  
                         chats.push(msg.chat);
@@ -191,6 +207,15 @@ class Game extends Component {
                 }
             }
         }
+    }
+
+    handleResize = function(){
+        //waits for resize event to finish before updating the board
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            this.drawCanvas(this.state.board);
+        }, 150);
+
     }
 
     handleKeypress = function(event) {
@@ -231,37 +256,17 @@ class Game extends Component {
         this.sendRequestWithMessage("chat", message);
     }
 
-    renderTable() {
-        const board = this.state.board;
-        return board.map((row, i) => {
-            return (<tr key={i}>{row.map((item, j) => {
-                if (item == null){
-                    return <td key={j}></td>;
-                }
-                if (item.type === "player") {
-                    return (<td key={j}>
-                    <img src={images[item.armour]} className="gameTile" alt=""></img>
-                     </td>); 
-                } else {
-                    return (<td key={j}>
-                    <img src={images[item.type]} className="gameTile" alt=""></img>
-                    </td>);
-                } 
-            })}</tr>);
-        })
-    }
-
     render() {
         if (this.state.connect){
             return(
                 <div>
-                    <canvas ref={this.canvasRef} height={640} width={640}/>
-
-        
-
-                    <table className="gameTable">
-                        <tbody>{this.renderTable()}</tbody>
-                    </table>
+                    <div className="gameBoard" ref={this.gameBoardRef}>
+                        <canvas 
+                            ref={this.canvasRef}
+                            height={this.state.height}
+                            width={this.state.width}
+                        />
+                    </div>
                     <button onClick={this.disconnectFromGame}>Disconnect</button>
                     <br/>
                     <GameStats 
