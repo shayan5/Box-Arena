@@ -119,7 +119,10 @@ class Shop extends Component {
             <div>
                 {this.state.message}
                 <p>You have: ${this.state.balance}</p>
-                {this.renderIndividualItems(this.state.items)}
+                <div className="items">
+                    {this.renderIndividualItems(this.state.items)}
+                </div>
+                <br/>
                 <p>All icons are courtesy of <a href="https://icons8.com/">icons8</a></p>
             </div>
         );

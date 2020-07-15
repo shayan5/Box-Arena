@@ -7,12 +7,13 @@ const accessTokenExpiry = 30 * 60; // in seconds
 const refreshTokenExpiry = 60 * 60; // in seconds
 
 router.route('/register').post((req, res) => {
-    const username = req.body.username;
+    let username = req.body.username;
     const password = req.body.password;
     const confirmPassword = req.body.confirmPassword;
     if (!username || !password || username.length < 3 || !confirmPassword) {
         return res.status(400).json({ message: 'Something went wrong. Please try again later' });
     }
+    username = username.toLowerCase();
     if (confirmPassword !== password ) {
         return res.json({ message: 'Passwords do not match' });
     }
@@ -36,11 +37,12 @@ router.route('/register').post((req, res) => {
 });
 
 router.route('/login').post((req, res) => {
-    const username = req.body.username;
+    let username = req.body.username;
     const password = req.body.password;
     if (!username || !password){
         return res.sendStatus(400);
     }
+    username = username.toLowerCase();
     Player.find({
         username: username
     }, 'username saltedPasswordHash', (err, docs) => {

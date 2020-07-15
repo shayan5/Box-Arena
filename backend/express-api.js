@@ -15,7 +15,7 @@ app.use(cookieParser());
 
 
 app.use(cors({
-    origin: ["http://www.test.com:3000", "http://www.test.com:4000"], //TODO in prod both api and main site should be on same port
+    origin: ["http://192.168.0.27:3000", "http://www.test.com:3000", "http://www.test.com:4000"], //TODO in prod both api and main site should be on same port
     credentials: true
 }));
 

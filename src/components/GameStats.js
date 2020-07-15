@@ -4,12 +4,20 @@ import './GameStats.css';
 class GameStats extends Component {
     render() {
         return (
-            <div className="gameTimer">
-                Time remaining: {Math.floor(this.props.timer / 60)} minutes {this.props.timer % 60} seconds
-                <br/>
-                Monsters remaining: {this.props.numberMonsters}
-                <br/>
-                Score: {this.props.score}
+            <div className="gameStats">
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>Time left</td><td>{Math.floor(this.props.timer / 60)} min {this.props.timer % 60} sec</td>
+                        </tr>
+                        <tr>
+                            <td>Monsters left</td><td>{this.props.numberMonsters}</td>
+                        </tr>
+                        <tr>
+                            <td>Score</td><td>{this.props.score}</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         );
     }

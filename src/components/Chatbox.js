@@ -40,7 +40,7 @@ class Chatbox extends Component {
         return data.map((message, index) => {
             if (message.user === this.props.username){
                 return(
-                    <div key={index} className="container darker">
+                    <div key={index} className="chatContainer darker">
                         <span>
                             <img 
                                 src={images[message.armour]} 
@@ -53,7 +53,7 @@ class Chatbox extends Component {
                 );
             } else {
                 return (
-                    <div key={index} className="container">
+                    <div key={index} className="chatContainer">
                         <span>
                             <img 
                                 src={images[message.armour]} 
@@ -86,16 +86,14 @@ class Chatbox extends Component {
 
     render() {
         return(
-            <div className="chatbox">
+            <div className="chatBox">
                 {this.renderChatMessage(this.props.chatMessages)}
-                <div className="container">
-                    <span>
-                        <input className="send-text" value={this.state.message} 
-                            onChange={this.handleChange} 
-                            onKeyDown={this.keyPress}
-                            maxLength="150"
-                        /> <button className="send-button" onClick={this.handleClick}>Send</button>
-                    </span>
+                <div className="sendBox">
+                    <input className="send-text" value={this.state.message} 
+                        onChange={this.handleChange} 
+                        onKeyDown={this.keyPress}
+                        maxLength="150"
+                    /> <button className="send-button" onClick={this.handleClick}>Send</button>
                 </div>
             </div>
         );

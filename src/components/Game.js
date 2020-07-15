@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { Button } from "react-bootstrap";
 import './Game.css';
 
 import GameStats from "./GameStats";
@@ -190,10 +191,9 @@ class Game extends Component {
                         }  
                         chats.push(msg.chat);
                         this.setState({ chatMessages: chats });
-                    } else if (msg.restart) {
+                    } else if (msg.restart != null) {
                         alert("The match has ended, your final score is : " + msg.restart);
                         this.setState({ chatMessages: [] });
-                        
                     } else if (msg.error) {
                         alert(msg.error);
                     } else if (msg.killMonster) {
@@ -253,35 +253,48 @@ class Game extends Component {
     }
 
     sendChatMessage(message) {
-        this.sendRequestWithMessage("chat", message);
+        if (message !== "") {
+            this.sendRequestWithMessage("chat", message);
+        }
     }
 
     render() {
         if (this.state.connect){
             return(
                 <div>
-                    <div className="gameBoard" ref={this.gameBoardRef}>
-                        <canvas 
-                            ref={this.canvasRef}
-                            height={this.state.height}
-                            width={this.state.width}
-                        />
+                    <div className="gameScreen">
+                        <div className="gameBoard" ref={this.gameBoardRef}>
+                            <canvas 
+                                ref={this.canvasRef}
+                                height={this.state.height}
+                                width={this.state.width}
+                            />
+                        </div>
+                        <div className="gamePanel">
+                            <div className="infoContainer">
+                                <div className="disconnectBtn">
+                                    <Button variant="danger" onClick={this.disconnectFromGame}>Disconnect</Button>
+                                </div>
+                                <div className="gameInfo">
+                                    <GameStats 
+                                        timer={this.state.timer}
+                                        score={this.state.score}
+                                        numberMonsters={this.state.numberMonsters}
+                                    />
+                                </div>
+                            </div>
+                            <div className="chatboxContainer">
+                                <Chatbox 
+                                    username={this.props.username}
+                                    chatMessages={this.state.chatMessages}
+                                    sendChatMessage={this.sendChatMessage}
+                                />
+                            </div>
+                        </div>
                     </div>
-                    <button onClick={this.disconnectFromGame}>Disconnect</button>
                     <br/>
-                    <GameStats 
-                        timer={this.state.timer}
-                        score={this.state.score}
-                        numberMonsters={this.state.numberMonsters}
-                    />
-                    <br/>
-                    <Chatbox 
-                        username={this.props.username}
-                        chatMessages={this.state.chatMessages}
-                        sendChatMessage={this.sendChatMessage}
-                    />
                     All icons are courtesy of <a href="https://icons8.com/">icons8</a>
-                </div>      
+                </div>
             );
         } else {
             return(

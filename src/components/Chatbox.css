@@ -1,18 +1,18 @@
-.container {
+.chatContainer {
     border: 2px solid rgb(17, 17, 17);
     background-color: #f1f1f1;
     border-radius: 5px;
     padding: 5px;
+    word-wrap: break-word;
 }
 
 .darker {
     background-color: rgb(136, 90, 90);
 }
 
-.container img {
+.chatContainer img {
     float: left;
     max-width: 40px;
-    width: 100%;
     margin-right: 20px;
     border-radius: 50%;
 }
@@ -22,14 +22,29 @@
     color: #aaa;
 }
 
+.chatBox {
+    border-style: solid;
+    border-color: blue;
+}
+
 .send-text {
-    width: 78%;
     padding: 5px;
     border-radius: 5px;
+    flex: 5 0 0;
+}
+
+.sendBox {
+    display: flex;
+    flex-direction: row;
 }
 
 .send-button {
-    width: 18%;
     padding: 5px;
+    flex: 1 0 0;
+}
+
+.send-text, .send-button {
+    margin: 0;
+    align-self: flex-end;
 }
   

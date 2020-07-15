@@ -3,6 +3,9 @@
     border-radius: 5px;
     display: inline-block;
     padding: 2px 16px;
+    flex: 0 0 33%;
+    min-width: 120px;
+    margin-bottom: 1px;
 }
 
 .shopItemImg {
