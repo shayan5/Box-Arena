@@ -273,15 +273,15 @@ class Game extends Component {
                         </div>
                         <div className="gamePanel">
                             <div className="infoContainer">
-                                <div className="disconnectBtn">
-                                    <Button variant="danger" onClick={this.disconnectFromGame}>Disconnect</Button>
-                                </div>
                                 <div className="gameInfo">
                                     <GameStats 
                                         timer={this.state.timer}
                                         score={this.state.score}
                                         numberMonsters={this.state.numberMonsters}
                                     />
+                                </div>
+                                <div className="disconnectBtn">
+                                    <Button variant="danger" onClick={this.disconnectFromGame}>Disconnect</Button>
                                 </div>
                             </div>
                             <div className="chatboxContainer">

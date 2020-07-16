@@ -1,7 +1,5 @@
 .gameScreen {
-    margin: auto;
     align-items: center;
-    border-style: double;
     padding: 10px;
     display: flex;
     flex-wrap: wrap;
@@ -15,21 +13,23 @@
     width: 50vw;
     min-width: 300px;
     min-height: 300px;
-    border-style: solid;
-    border-color: red;
-    border-width: 5px;
+    max-width: 640px;
+    border: 5px solid black;
+    border-radius: 5px;
 }
 
 .gamePanel {
-    border-style: solid;
     display: flex;
     flex-direction: column;
     min-height: 300px;
-    border-color: orange;
+    min-width: 300px;
+    border: 5px solid black;
+    border-radius: 5px;
 }
 
 .gamePanel, .gameBoard {
     height: 50vw;
+    max-height: 640px;
 }
 
 .infoContainer {
@@ -40,17 +40,13 @@
 }
 
 .chatboxContainer {
+    margin: 5px;
+    max-width: 300px;
     flex: 1 0 0;
     display: flex;
     flex-direction: column-reverse;
-    border-color: green;
-    border-style: solid;
-    overflow: scroll;
-}
-
-.disconnectBtn {
-    display: inline-block;
-    flex: 1 0 0;
+    border-radius: 5px;
+    overflow-y: scroll;
 }
 
 .gameInfo {

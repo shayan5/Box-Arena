@@ -22,11 +22,6 @@
     color: #aaa;
 }
 
-.chatBox {
-    border-style: solid;
-    border-color: blue;
-}
-
 .send-text {
     padding: 5px;
     border-radius: 5px;

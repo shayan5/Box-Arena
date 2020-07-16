@@ -46,8 +46,8 @@ class Chatbox extends Component {
                                 src={images[message.armour]} 
                                 alt={images["default"]}
                             />
-                            <p className="time-right">{new Date(message.time).toLocaleString()}</p>
-                            <p><b>{message.user}</b>: {message.message}</p>
+                            <p className="time-right">{new Date(message.time).toLocaleString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                            <p className="chatMessage"><b>{message.user}</b>: {message.message}</p>
                         </span>
                     </div>
                 );
@@ -59,8 +59,8 @@ class Chatbox extends Component {
                                 src={images[message.armour]} 
                                 alt={images["default"]}
                             />
-                            <p className="time-right">{new Date(message.time).toLocaleString()}</p>
-                            <p><b>{message.user}</b>: {message.message}</p>
+                            <p className="time-right">{new Date(message.time).toLocaleString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                            <p className="chatMessage"><b>{message.user}</b>: {message.message}</p>
                         </span>
                     </div>
                 );
@@ -92,6 +92,7 @@ class Chatbox extends Component {
                     <input className="send-text" value={this.state.message} 
                         onChange={this.handleChange} 
                         onKeyDown={this.keyPress}
+                        placeholder="Type here..."
                         maxLength="150"
                     /> <button className="send-button" onClick={this.handleClick}>Send</button>
                 </div>

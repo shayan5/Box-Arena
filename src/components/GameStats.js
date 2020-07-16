@@ -5,6 +5,7 @@ class GameStats extends Component {
     render() {
         return (
             <div className="gameStats">
+                <h5>Stats</h5>
                 <table>
                     <tbody>
                         <tr>
