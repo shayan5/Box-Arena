@@ -10,11 +10,13 @@ import NavigationBar from "./components/NavigationBar";
 import Leaderboards from "./components/Leaderboards";
 import Game from "./components/Game";
 import Shop from "./components/Shop";
+import GenericNotFound from "./components/GenericNotFound";
 
 class App extends Component { //TODO move to components folder
   constructor(props) {
     super(props);
 
+    this.getRouterPaths = this.getRouterPaths.bind(this);
     this.getTimeToRenewToken = this.getTimeToRenewToken.bind(this);
     this.silentRefresh = this.silentRefresh.bind(this);
     this.handleLogin = this.handleLogin.bind(this);
@@ -103,43 +105,56 @@ class App extends Component { //TODO move to components folder
     });
   }
 
-  render() {
-    if (this.state.authenticated){
+  getRouterPaths () {
+    if (this.state.authenticated) {
       return (
-        <Router>
-          <NavigationBar />
-          <Switch>
-            <Route path="/leaderboards" component={Leaderboards}/>
-            <Route path="/logout" render={() => {this.handleLogout();}}/>
-            <Route path="/game" render={() => (
-                <Game 
-                  accessToken={this.state.accessToken}
-                  username={this.state.username}
-                />
-              )}
-            />
-            <Route path="/shop" render={() => (
-                <Shop 
-                  accessToken={this.state.accessToken}
-                  username={this.state.username}
-                />
-              )}
-            />
-            <Redirect from="*" to="/game"/>
-          </Switch>
-        </Router>
+        <Switch>
+          <Route path="/login" render={() => (
+            <Redirect to="/game" />
+          )}/>
+          <Route path="/register" render={() => (
+            <Redirect to="/game" />
+          )}/>
+          <Route path="/leaderboards" component={Leaderboards}/>
+          <Route path="/logout" render={() => {this.handleLogout();}}/>
+          <Route path="/game" render={() => (
+              <Game 
+                accessToken={this.state.accessToken}
+                username={this.state.username}
+              />
+            )}
+          />
+          <Route path="/shop" render={() => (
+              <Shop 
+                accessToken={this.state.accessToken}
+                username={this.state.username}
+              />
+            )}
+          />
+          <Route component={GenericNotFound} />
+        </Switch>
       );
     } else {
       return (
-        <Router>
-          <Switch>
-            <Route path="/login" render={() => (<Login handleLogin={this.handleLogin}/>)} />
-            <Route path="/register" component={Register}/>
-            <Redirect from="*" to="/login"/>
-          </Switch>
-        </Router>
+        <Switch>
+          <Route exact path="/" render={() => (
+            <Redirect to="/login" />
+          )}/>
+          <Route path="/login" render={() => (<Login handleLogin={this.handleLogin}/>)} />
+          <Route path="/register" component={Register}/>
+          <Route component={GenericNotFound} />
+        </Switch>
       );
     }
+  }
+
+  render() {
+    return (
+      <Router>
+        <NavigationBar authenticated={this.state.authenticated}/>
+        {this.getRouterPaths()}
+      </Router>
+    );
   }
 }
 

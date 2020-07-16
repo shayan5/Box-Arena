@@ -4,6 +4,7 @@ import './Game.css';
 
 import GameStats from "./GameStats";
 import Chatbox from "./Chatbox";
+import Footer from "./Footer";
 
 const wall = require('../icons/wall.png');
 const blank = require('../icons/blank.png');
@@ -293,7 +294,7 @@ class Game extends Component {
                         </div>
                     </div>
                     <br/>
-                    All icons are courtesy of <a href="https://icons8.com/">icons8</a>
+                    <Footer/>
                 </div>
             );
         } else {

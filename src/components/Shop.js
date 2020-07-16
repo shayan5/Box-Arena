@@ -1,8 +1,10 @@
 import React, { Component } from "react";
 import axios from 'axios';
 import "./Shop.css";
+import "./Footer.css"
 
 import ShopItem from "./ShopItem";
+import Footer from "./Footer";
 
 class Shop extends Component {
     constructor(props) {
@@ -123,7 +125,7 @@ class Shop extends Component {
                     {this.renderIndividualItems(this.state.items)}
                 </div>
                 <br/>
-                <p>All icons are courtesy of <a href="https://icons8.com/">icons8</a></p>
+                <Footer/>
             </div>
         );
     }

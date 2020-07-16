@@ -1,0 +1,9 @@
+.notFoundPage {
+    text-align: center;
+    margin: auto;
+    padding: 20px;
+}
+
+.notFoundPage h3 {
+    color: red;
+}
