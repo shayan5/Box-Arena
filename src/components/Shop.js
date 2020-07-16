@@ -120,7 +120,9 @@ class Shop extends Component {
         return (
             <div>
                 {this.state.message}
-                <p>You have: ${this.state.balance}</p>
+                <div className="balanceDiv">
+                    You have: ${this.state.balance}
+                </div>
                 <div className="items">
                     {this.renderIndividualItems(this.state.items)}
                 </div>

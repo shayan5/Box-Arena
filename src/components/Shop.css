@@ -6,3 +6,8 @@
     padding: 10px;
     justify-content: space-evenly;
 }
+
+.balanceDiv {
+    padding: 5px;
+    text-align: center;
+}
