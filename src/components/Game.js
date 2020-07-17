@@ -5,6 +5,7 @@ import './Game.css';
 import GameStats from "./GameStats";
 import Chatbox from "./Chatbox";
 import Footer from "./Footer";
+import Instructions from "./Instructions";
 
 const wall = require('../icons/wall.png');
 const blank = require('../icons/blank.png');
@@ -301,6 +302,7 @@ class Game extends Component {
             return(
                 <div>
                     <button onClick={this.connectToGame}>Connect</button>
+                    <Instructions/>
                 </div>
             );
         }       

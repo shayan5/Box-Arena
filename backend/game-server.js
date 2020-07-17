@@ -1,11 +1,9 @@
-const express = require('express');
 const WebSocket = require('ws');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
 
 require('dotenv').config();
 
-const app = express();
 const port = process.env.GAME_PORT || 4001;
 
 /************* Tile Classes ******/
