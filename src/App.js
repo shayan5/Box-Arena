@@ -11,6 +11,7 @@ import Leaderboards from "./components/Leaderboards";
 import Game from "./components/Game";
 import Shop from "./components/Shop";
 import GenericNotFound from "./components/GenericNotFound";
+import Footer from "./components/Footer";
 
 class App extends Component { //TODO move to components folder
   constructor(props) {
@@ -153,6 +154,7 @@ class App extends Component { //TODO move to components folder
       <Router>
         <NavigationBar authenticated={this.state.authenticated}/>
         {this.getRouterPaths()}
+        <Footer/>
       </Router>
     );
   }

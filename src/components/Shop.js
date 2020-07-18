@@ -4,7 +4,6 @@ import "./Shop.css";
 import "./Footer.css"
 
 import ShopItem from "./ShopItem";
-import Footer from "./Footer";
 
 class Shop extends Component {
     constructor(props) {
@@ -121,13 +120,12 @@ class Shop extends Component {
             <div>
                 {this.state.message}
                 <div className="balanceDiv">
+                    <h5>Welcome to the Item Shop!</h5>
                     You have: ${this.state.balance}
                 </div>
                 <div className="items">
                     {this.renderIndividualItems(this.state.items)}
                 </div>
-                <br/>
-                <Footer/>
             </div>
         );
     }

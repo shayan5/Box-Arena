@@ -4,7 +4,6 @@ import './Game.css';
 
 import GameStats from "./GameStats";
 import Chatbox from "./Chatbox";
-import Footer from "./Footer";
 import Instructions from "./Instructions";
 
 const wall = require('../icons/wall.png');
@@ -295,14 +294,16 @@ class Game extends Component {
                         </div>
                     </div>
                     <br/>
-                    <Footer/>
                 </div>
             );
         } else {
             return(
-                <div>
-                    <button onClick={this.connectToGame}>Connect</button>
-                    <Instructions/>
+                <div className="connectScreenContainer">
+                    <h5>How to Play</h5>
+                    <div className="connectScreen card">
+                        <Instructions/>
+                        <Button variant="primary" onClick={this.connectToGame}>Join game!</Button> 
+                    </div>
                 </div>
             );
         }       

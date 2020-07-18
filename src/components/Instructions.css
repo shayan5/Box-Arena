@@ -1,0 +1,11 @@
+.responsive {
+    width: 100%;
+    max-width: 212px;
+    max-height: 128px;
+    height: auto;
+}
+
+.surroundImg {
+    display: block;
+    margin: 0 auto;
+}

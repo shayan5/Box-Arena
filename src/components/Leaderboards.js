@@ -11,7 +11,7 @@ class Leaderboards extends Component {
 
         this.state = {
             data: [],
-            message: ''
+            message: null
         }
     }
 
@@ -46,8 +46,8 @@ class Leaderboards extends Component {
     render(){
         return(
             <div id="highScores">
-                <h1>{this.state.message}</h1>
-                <h3>Top 5 Highscores</h3>
+                {this.state.message}
+                <h5>Top 5 Highscores</h5>
                 <table className="table">
                     <thead>
                         <tr>

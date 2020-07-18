@@ -52,3 +52,16 @@
 .gameInfo {
     flex: 1 0 0;
 }
+
+.connectScreenContainer h5 {
+    text-align: center;
+}
+.connectScreen {
+    margin-top: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 70%;
+    border: 5px solid black;
+    border-radius: 5px;
+    padding: 20px;
+}
