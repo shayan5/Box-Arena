@@ -25,7 +25,7 @@ class Register extends Component {
     onSubmit(e) {
         e.preventDefault();
         this.setState({ message: "" });
-        axios.post('http://localhost:4000/authentication/register', { //TODO change to relative path
+        axios.post('/authentication/register', { //TODO change to relative path
             username: this.state.username,
             password: this.state.password,
             confirmPassword: this.state.confirmPassword

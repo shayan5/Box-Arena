@@ -55,7 +55,7 @@ class App extends Component { //TODO move to components folder
   handleLogout() {
     //axios.defaults.withCredentials = true;
     const token = "Bearer " + this.state.accessToken;
-    axios.post('http://www.test.com:4000/authentication/logout', {}, {
+    axios.post('/authentication/logout', {}, {
       headers: { 'Authorization': token }
     }) //TODO change to relative path
     .then(() => {
@@ -77,7 +77,7 @@ class App extends Component { //TODO move to components folder
 
   silentRefresh() {
     axios.defaults.withCredentials = true;
-    axios.post('http://www.test.com:4000/authentication/refresh-token', {}, { withCredentials: true }) //TODO change to relative path
+    axios.post('/authentication/refresh-token', {}, { withCredentials: true }) //TODO change to relative path
     .then((res) => {
       if (res.status === 200) {
         this.setState({ 

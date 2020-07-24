@@ -5,6 +5,7 @@ const axios = require('axios');
 require('dotenv').config();
 
 const port = process.env.GAME_PORT || 4001;
+const apiServerBaseUrl = process.env.API_SERVER_BASE_URL;
 
 /************* Tile Classes ******/
 class Tile {
@@ -355,7 +356,7 @@ function getPlayerInfo(token) {
     const config = { 
         headers: { Authorization: `Bearer ${token}` } 
     };
-    return axios.get('http://www.test.com:4000/players/armour', config) //TODO relative path
+    return axios.get(apiServerBaseUrl + '/players/armour', config) //TODO NOT relative path
     .then((res) => {
         return res.data;
     }).catch(() => {
@@ -369,7 +370,7 @@ function updatePlayerRewards(players, score) {
         const config = {
             headers: { Authorization: `Bearer ${process.env.GAME_SERVER_TOKEN_SECRET}` }
         };
-        axios.post('http://www.test.com:4000/players/update-rewards', { //TODO change to relative paht
+        axios.post(apiServerBaseUrl + '/players/update-rewards', { //TODO NOT relative path
             players: playerArray,
             score: score,
             currency: score * currencyMultiplier

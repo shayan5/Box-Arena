@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { Button } from "react-bootstrap";
 import './Game.css';
+import socketUrl from '../socketConfig';
 
 import GameStats from "./GameStats";
 import Chatbox from "./Chatbox";
@@ -83,7 +84,6 @@ class Game extends Component {
     componentWillUnmount() {
         if (this.client && this.client.readyState === this.client.OPEN) {
             this.client.close();
-            console.log("Disconnected")
         }
         document.removeEventListener('keydown', this.handleKeypress);
         window.removeEventListener('resize', this.handleResize);
@@ -150,9 +150,8 @@ class Game extends Component {
     }
 
     connectToGame() {
-        this.client = new WebSocket("ws://www.test.com:4001"); //TODO fix url
+        this.client = new WebSocket(socketUrl); //TODO fix url
         this.client.onopen = () => {
-            console.log("Connected");
             this.setState({ connect: true });
             this.sendRequest("new");
         }
@@ -250,7 +249,6 @@ class Game extends Component {
         });
         this.sendRequest("logout");
         this.client.close();
-        console.log('Disconnected');
     }
 
     sendChatMessage(message) {
