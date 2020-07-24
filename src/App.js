@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import axios from 'axios';
 import "bootstrap/dist/css/bootstrap.min.css";
-import { BrowserRouter as Router, Route, Redirect, Switch } from "react-router-dom";
+import { MemoryRouter } from 'react-router';
+import { Route, Redirect, Switch } from "react-router-dom";
 import './App.css';
 
 import Login from "./components/Login";
@@ -151,11 +152,11 @@ class App extends Component {
 
   render() {
     return (
-      <Router>
+      <MemoryRouter>
         <NavigationBar authenticated={this.state.authenticated}/>
         {this.getRouterPaths()}
         <Footer/>
-      </Router>
+      </MemoryRouter>
     );
   }
 }
