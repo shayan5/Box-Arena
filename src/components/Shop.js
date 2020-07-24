@@ -30,7 +30,7 @@ class Shop extends Component {
     }
 
     getShopItems() {
-        axios.get('/items/item-shop') //TODO change to relative path
+        axios.get('/items/item-shop')
         .then((res) => {
             if (res.data) {
                 this.setState({ items: res.data });
@@ -47,7 +47,7 @@ class Shop extends Component {
         const config = {
             headers: { Authorization: `Bearer ${this.props.accessToken}` }
         };
-        axios.get('/players/basic-info', config) //TODO relative path
+        axios.get('/players/basic-info', config)
         .then((res) => {
             if (res.data) {
                 this.setState({ 
@@ -85,7 +85,7 @@ class Shop extends Component {
         const config = {
             headers: { Authorization: `Bearer ${this.props.accessToken}` }
         };
-        axios.post('/players/purchase-item', //TODO relative path
+        axios.post('/players/purchase-item',
             { item: item },
             config)
         .then((res) => {
@@ -105,7 +105,7 @@ class Shop extends Component {
         const config = {
             headers: { Authorization: `Bearer ${this.props.accessToken}` }
         };
-        axios.post('/players/change-equipment', //TODO relative path
+        axios.post('/players/change-equipment',
             { item: item }, 
             config)
         .then(() => {

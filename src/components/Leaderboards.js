@@ -20,7 +20,7 @@ class Leaderboards extends Component {
     }
 
     fetchScores() {
-        axios.get('/players/highscores') //TODO change to relative path
+        axios.get('/players/highscores')
         .then((res) => {
             if (res.data) {
                 this.setState({ data: res.data });

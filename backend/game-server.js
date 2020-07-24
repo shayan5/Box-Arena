@@ -356,7 +356,7 @@ function getPlayerInfo(token) {
     const config = { 
         headers: { Authorization: `Bearer ${token}` } 
     };
-    return axios.get(apiServerBaseUrl + '/players/armour', config) //TODO NOT relative path
+    return axios.get(apiServerBaseUrl + '/players/armour', config)
     .then((res) => {
         return res.data;
     }).catch(() => {
@@ -370,7 +370,7 @@ function updatePlayerRewards(players, score) {
         const config = {
             headers: { Authorization: `Bearer ${process.env.GAME_SERVER_TOKEN_SECRET}` }
         };
-        axios.post(apiServerBaseUrl + '/players/update-rewards', { //TODO NOT relative path
+        axios.post(apiServerBaseUrl + '/players/update-rewards', {
             players: playerArray,
             score: score,
             currency: score * currencyMultiplier

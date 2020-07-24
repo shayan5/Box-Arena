@@ -150,7 +150,7 @@ class Game extends Component {
     }
 
     connectToGame() {
-        this.client = new WebSocket(socketUrl); //TODO fix url
+        this.client = new WebSocket(socketUrl);
         this.client.onopen = () => {
             this.setState({ connect: true });
             this.sendRequest("new");

@@ -13,7 +13,7 @@ import Shop from "./components/Shop";
 import GenericNotFound from "./components/GenericNotFound";
 import Footer from "./components/Footer";
 
-class App extends Component { //TODO move to components folder
+class App extends Component {
   constructor(props) {
     super(props);
 
@@ -57,7 +57,7 @@ class App extends Component { //TODO move to components folder
     const token = "Bearer " + this.state.accessToken;
     axios.post('/authentication/logout', {}, {
       headers: { 'Authorization': token }
-    }) //TODO change to relative path
+    })
     .then(() => {
       this.setState({ 
         authenticated: false,
@@ -77,7 +77,7 @@ class App extends Component { //TODO move to components folder
 
   silentRefresh() {
     axios.defaults.withCredentials = true;
-    axios.post('/authentication/refresh-token', {}, { withCredentials: true }) //TODO change to relative path
+    axios.post('/authentication/refresh-token', {}, { withCredentials: true })
     .then((res) => {
       if (res.status === 200) {
         this.setState({ 

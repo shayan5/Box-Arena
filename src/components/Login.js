@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { NavLink } from 'react-router-dom';
 import { Form, Button, FormGroup, FormControl, FormLabel } from "react-bootstrap";
 import axios from 'axios';
 import "./Login.css";
@@ -40,7 +41,7 @@ class Login extends Component {
   onSubmit(event) {
     event.preventDefault();
     this.setState({ message: "" });
-    axios.post('/authentication/login', { //TODO change to relative path for prod
+    axios.post('/authentication/login', {
       username: this.state.username,
       password: this.state.password
     }).then((res) => {
@@ -87,7 +88,7 @@ class Login extends Component {
             Submit
           </Button>
           <br/>
-          Need an account? <a href='/register'>Sign up</a>
+          Need an account? <NavLink to='/register'>Sign up</NavLink>
         </Form>
       </div>
     );

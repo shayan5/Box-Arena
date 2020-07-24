@@ -9,13 +9,12 @@ require('dotenv').config();
 const app = express();
 const port = process.env.API_PORT || 4000;
 
-//app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 
 
 app.use(cors({
-    origin: ["http://192.168.0.27:3000", "http://www.test.com:3000", "http://www.test.com:4000"], //TODO in prod both api and main site should be on same port
+    origin: [process.env.API_SERVER_BASE_URL],
     credentials: true
 }));
 
