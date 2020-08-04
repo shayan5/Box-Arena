@@ -32,3 +32,6 @@ You will need Node.js, npm and a MongoDB server
 6. Run `node /backend/express-api.js` to start the api server
 7. Run `node /backend/game-server.js` to start the game server
 8. Navigate to the api server url in your preferred web browser
+
+
+All icons/sprites are courtesy of https://icons8.com/.
