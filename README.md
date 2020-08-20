@@ -1,5 +1,5 @@
 # Box-Arena
-An online coop game built using the MERN stack.
+An online coop game built using the MERN (MongoDB, Express, React, Node) stack.
 
 ## Description
 This project is a small cooperative browser based online multiplayer game. The goal of the game is to work together with other players to eliminate all of the monsters in the arena. Players can tactically push boxes placed throughout the arena in order to trap, and therefore eliminate, the monsters.  
